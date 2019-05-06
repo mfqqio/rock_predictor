@@ -2,7 +2,7 @@
 # Rock Type Prediction from Drill Telemetry Data (QIO3)
 
 # Join hole-identified data sets (collar + PV drill), add rock class labels
-# python join_holes.py collar.csv prdrill.csv
+# python join_holes.py ../../data/190501001_COLLAR.csv ../../data/190418001_PVDrillProduction.csv
 
 # Label telemetry data
 
