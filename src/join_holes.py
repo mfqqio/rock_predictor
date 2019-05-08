@@ -89,13 +89,9 @@ if len(sys.argv) == 5:
     
     
     #### WRANGLE PVDRILL DATA
-    # Read production drill data from file, attaching header column names
-    pdrill_cols = ['DrillPattern','DesignX','DesignY','DesignZ','DesignDepth','ActualX','ActualY',
-                       'ActualZ','ActualDepth','ColletZ','HoleID','FullName','FirstName',
-                       'UTCStartTime','UTCEndTime','StartTimeStamp','EndTimeStamp','DrillTime']
+    # Read production drill data from file
     
-    pdrill = pd.read_csv(pdrill_path, 
-                         names = pdrill_cols)
+    pdrill = pd.read_csv(pdrill_path)
     
     print('PVdrill data dimensions:', pdrill.shape)
     

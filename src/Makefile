@@ -4,8 +4,8 @@
 
 
 # Join hole-identified data sets (collar + PV drill), add rock class labels
-labelled_holes.csv : ../data/190501001_COLLAR.csv ../data/190418001_PVDrillProduction.csv ../data/rock_class_mapping.csv
-	python join_holes.py ../data/190501001_COLLAR.csv ../data/190418001_PVDrillProduction.csv ../data/rock_class_mapping.csv labelled_holes.csv
+labelled_holes.csv : ../data/190501001_COLLAR.csv ../data/190506001_PVDrillProduction.csv ../data/rock_class_mapping.csv
+	python join_holes.py ../data/190501001_COLLAR.csv ../data/190506001_PVDrillProduction.csv ../data/rock_class_mapping.csv labelled_holes.csv
 
 # Label telemetry data
 
