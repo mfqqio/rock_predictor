@@ -12,6 +12,8 @@ labelled_holes.csv : ../data/190501001_COLLAR.csv ../data/190418001_PVDrillProdu
 # EDA and sanity check report (1)
 
 # Feature engineering for non-telemetry data
+non_telem_features.csv : ../eda_viz/join_master.csv
+	python create_nontelem_features.py ../eda_viz/join_master.csv non_telem_features.csv
 
 # Feature engineering for telemetry Data
 
@@ -20,3 +22,8 @@ labelled_holes.csv : ../data/190501001_COLLAR.csv ../data/190418001_PVDrillProdu
 # EDA and sanity check report (2)
 
 # Build model
+
+# Clean up files
+clean :
+	rm -f labelled_holes.csv
+	rm -f non_telem_features.csv
