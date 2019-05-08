@@ -10,10 +10,11 @@ labelled_holes.csv : ../../data/190501001_COLLAR.csv ../../data/190418001_PVDril
 # Split data into train and test sets
 
 # EDA and sanity check report (1)
-
+# eda_1.py /join_master.csv
 # Feature engineering for non-telemetry data
 
 # Feature engineering for telemetry Data
+# feat_telem.py join_holes.py
 
 # Join and prepare inputs for model
 
