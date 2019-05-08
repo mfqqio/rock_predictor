@@ -22,6 +22,7 @@ non_telem_features.csv : ../eda_viz/join_master.csv
 # EDA and sanity check report (2)
 
 # Build model
+#python build_model.py non_telem_features.csv rock_class
 
 # Clean up files
 clean :
