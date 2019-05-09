@@ -4,16 +4,16 @@
 all : model_results.txt
 
 # Join hole-identified data sets (collar + PV drill), add rock class labels
-labelled_holes.csv : ../data/190501001_COLLAR.csv ../data/190506001_PVDrillProduction.csv ../data/rock_class_mapping.csv
-	python join_holes.py ../data/190501001_COLLAR.csv ../data/190506001_PVDrillProduction.csv ../data/rock_class_mapping.csv labelled_holes.csv
+labelled_holes.csv : data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv
+	python src/1_join_holes.py data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv data/intermediate/labelled_holes.csv
 
 # Label telemetry data
-# joined_data.csv : list dependencies here
-# insert python script to run here
+data/intermediate/joined_data.csv : data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/labelled_holes.csv
+	python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv data/intermediate/2_joined_data_test.csv
 
 # Split data into train and test sets
-train.csv : joined_data.csv
-	python train_test.py joined_data.csv litho_rock_type 0.2 train.csv test.csv
+train.csv : data/intermediate/joined_data.csv
+	python src/3_train_test.py joined_data.csv litho_rock_type 0.2 data/intermediate/3-1_train.csv data/intermediate/3-2_test.csv
 
 # EDA and sanity check report (1)
 # Use train data (telemetry and non-telemetry data)
@@ -21,30 +21,25 @@ eda_1.pdf : eda_1.ipynb
 	jupyter nbconvert --to pdf --execute eda_1.ipynb
 
 # Feature engineering for non-telemetry data
-non_telem_features.csv : train.csv
-	python create_nontelem_features.py train.csv non_telem_features.csv
+non_telem_features.csv : data/intermediate/3-1_train.csv
+	python src/4_create_nontelem_features.py data/intermediate/3-1_train.csv data/intermediate/4_non_telem_features.csv
 
 # Feature engineering for telemetry data
-telem_features.csv : train.csv
-	python telem_features.py train.csv telem_features.csv
+telem_features.csv : 3-1_train.csv
+	python src/5_telem_features.py 3-1_train.csv data/intermediate/5_telem_features.csv
 
 # Join and prepare inputs for model
-join_feat.csv : telem_features.csv non_telem_features.csv
-	python join_features.py telem_features.csv non_telem_features.csv join_feat.csv
+join_feat.csv : data/intermediate/4_non_telem_features.csv data/intermediate/5_telem_features.csv
+	python src/6_join_features.py data/intermediate/5_telem_features.csv data/intermediate/4_non_telem_features.csv data/intermediate/6_join_feat.csv
 
 # EDA and sanity check report (2)
 
 # Build model
-model_results.txt : join_feat.csv
-	python build_model.py join_feat.csv rock_class model_results.txt
+model_results.txt : data/intermediate/6_join_feat.csv
+	python 7_build_model.py data/intermediate/6_join_feat.csv doc/rock_class model_results.txt
 
 # Clean up files
 clean :
-	rm -f labelled_holes.csv
-	rm -f train.csv
-	rm -f test.csv
-	rm -f non_telem_features.csv
-	rm -f telem_features.csv
+	rm -f data/intermediate/*
 	rm -f eda_1.pdf
-	rm -f join_feat.csv
-	rm -f model_results.txt
+	rm -f doc/*
