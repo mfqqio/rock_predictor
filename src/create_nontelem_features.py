@@ -44,7 +44,7 @@ def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, opera
     features['rock_class'] = features['rock_class'].astype(str)
 
     # Add penetration rate as a feature
-    depth_telem = df[df.FieldDesc == 'Hole Depth'] # Subset to hole depth data only
+    depth_telem = df[df.FieldDesc == hole_depth_col] # Subset to hole depth data only
     features = calc_penetration_rate(depth_telem, features, hole_id_col)
 
     return features
@@ -86,11 +86,11 @@ if len(sys.argv) == 3:
     print('Master joined table dimensions:', df.shape)
 
     nontelem_feats = create_nontelem_features(df,
-                                              target_col='rock_type_mfq',
-                                              hole_id_col='Unique_HoleID_y',
+                                              target_col='litho_rock_class',
+                                              hole_id_col='redrill_id',
                                               drilltime_col='DrillTime',
                                               operator_col='FirstName',
-                                              redrill_col='Redrill',
+                                              redrill_col='redrill',
                                               hole_depth_col='Hole Depth')
 
     # Output calculated features to file
