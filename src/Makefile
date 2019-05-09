@@ -27,6 +27,8 @@ telem_features.csv : train.csv
 	python telem_features.py train.csv telem_features.csv
 
 # Join and prepare inputs for model
+join_feat.csv : telem_features.csv, non_telem_features.csv
+	python join_features.py telem_features.csv, non_telem_features.csv join_feat.csv
 
 # EDA and sanity check report (2)
 
