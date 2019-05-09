@@ -16,7 +16,7 @@ This algorithm works in 4 steps:
 
 To run the script:
 
-python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/dbo.MCCONFMcparam_rawdata.csv data/1_labelled_holes.csv data/2_joined_data.csv"
+python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv data/intermediate/2_joined_data_test.csv
 """
 
 import pandas as pd
@@ -26,13 +26,14 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("data_path")
 parser.add_argument("field_names_path")
-parser.add_argument("labels")
+parser.add_argument("labelled_holes_path")
 parser.add_argument("output_file_path")
 
 args = parser.parse_args()
 
 data_path = args.data_path
 field_names_path = args.field_names_path
+labelled_holes_path = args.labelled_holes_path
 output_file_path = args.output_file_path
 
 # ## Step 1 - Load telemetry data and perform preliminary cleaning
@@ -93,7 +94,11 @@ df_timeseries.hole_index = df_timeseries.hole_index.cumsum()
 # In[7]:
 
 
-df_holes = df_timeseries.reset_index().groupby("hole_index").agg({"utc_field_timestamp": ['min', 'max']})
+df_holes = (df_timeseries
+            .reset_index()
+            .groupby("hole_index")
+            .agg({"utc_field_timestamp": ['min', 'max']})
+            )
 df_holes.columns = ["drill_start", "drill_end"]
 df_holes.reset_index(inplace=True)
 df_holes.dropna(inplace=True) #remove ALL missing values. We need complete signals.
@@ -102,7 +107,7 @@ df_holes.dropna(inplace=True) #remove ALL missing values. We need complete signa
 
 # #### 3.1 Read in labelled data from previous and perform basic cleaning
 
-df_labels = pd.read_csv('../src/labelled_holes.csv')
+df_labels = pd.read_csv(labelled_holes_path)
 df_labels = df_labels[df_labels.collar_type != "DESIGN"] # We just want ACTUAL drills, not designed ones.
 df_labels["unix_midpoint"] = (df_labels.unix_start + df_labels.unix_end) / 2
 df_labels.dropna(subset=["unix_midpoint"], inplace=True) # We need complete drills, just as before
