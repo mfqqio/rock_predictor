@@ -28,7 +28,7 @@ if len(sys.argv) == 3:
     print('Training data dimensions:', df.shape)
     
     # Filter out holes/rows which have no target label
-    df = df[pd.notnull(df['rock_class'])]
+    df = df[pd.notnull(df[target_col])]
 
     # Filter out holes/rows where drilling time is less than 1 minute
     df = df[df['total_drill_time'] > 60]
