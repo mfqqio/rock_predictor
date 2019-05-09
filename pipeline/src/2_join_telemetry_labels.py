@@ -13,21 +13,38 @@ This algorithm works in 4 steps:
 2. Identify different drills based purely on hole depth signal. Let's call them "holes from telemetry"
 3. Match **holes from telemetry** with **holes from Provision**. Needs to be done in a separate step due to memory restrictions
 4. Fully join Telemetry Data with Provision data and perform final cleaning.
+
+To run the script:
+
+python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/dbo.MCCONFMcparam_rawdata.csv data/1_labelled_holes.csv data/2_joined_data.csv"
 """
 
 import pandas as pd
 import numpy as np
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("data_path")
+parser.add_argument("field_names_path")
+parser.add_argument("labels")
+parser.add_argument("output_file_path")
+
+args = parser.parse_args()
+
+data_path = args.data_path
+field_names_path = args.field_names_path
+output_file_path = args.output_file_path
 
 # ## Step 1 - Load telemetry data and perform preliminary cleaning
 # #### 1.1 Load telemetry data ignoring useless columns
 
 usecols = ['FieldTimestamp', 'ShiftId','Id', 'FieldOperid', 'FieldStatus', 'FieldId', 'FieldData', 'FieldX', 'FieldY']
-df = pd.read_csv("../data/190416001_MCMcshiftparam.csv", usecols=usecols, dtype={"FieldOperid": object})
+df = pd.read_csv(data_path, usecols=usecols, dtype={"FieldOperid": object})
 
 # #### 1.2 Join FieldDesc and correct timezone
 
 # Join FieldDesc
-df_field_names = pd.read_csv("../data/dbo.MCCONFMcparam_rawdata.csv")
+df_field_names = pd.read_csv(field_names_path)
 df_field_names = df_field_names[["FieldId", "FieldDesc"]].set_index("FieldId")
 df = df.join(df_field_names, on="FieldId", how="left")
 
@@ -163,7 +180,4 @@ df_join.dropna(subset=["hole_id"], inplace=True)
 
 # #### 4.2 - Exporting data as .csv
 
-# In[15]:
-
-
-df_join.to_csv("../src/joined_data.csv")
+df_join.to_csv(output_file_path)
