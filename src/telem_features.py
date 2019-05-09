@@ -23,7 +23,7 @@ def get_std(df, list_of_var):
     for var in list_of_var:
         mask = (df.FieldDesc == var)
         df1 = df[mask]
-        groups = df1.groupby('Unique_HoleID_y')
+        groups = df1.groupby('redrill_id')
         std_results = pd.DataFrame(groups.agg('std')['FieldData'])
         std_results.columns=[var]
         final = pd.concat([final, std_results], axis=1)
