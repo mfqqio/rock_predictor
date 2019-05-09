@@ -31,8 +31,8 @@ telem_features.csv : train.csv
 # EDA and sanity check report (2)
 
 # Build model
-model_output : model_report.csv
-#python build_model.py non_telem_features.csv rock_class
+model_results.txt : non_telem_features.csv
+	python build_model.py non_telem_features.csv rock_class model_results.txt
 
 # Clean up files
 clean :
