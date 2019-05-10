@@ -8,7 +8,7 @@ Separates train and test data with stratification.
 Input: labelled_holes.csv (n rows, m columns)
 Output: labelled_holes_tts.csv (n rows, m+1 columns)
 
-Sample terminal call: python3 train_test.py joined_data.csv litho_rock_type 0.2 train.csv test.csv
+Sample terminal call: python3 train_test.py labelled_holes.csv litho_rock_type 0.2 train.csv test.csv
 """
 import sys, random
 import pandas as pd
@@ -19,7 +19,7 @@ test_prop = float(sys.argv[3])
 output_file_train = sys.argv[4]
 output_file_test = sys.argv[5]
 
-df_input = pd.read_csv(input_file, low_memory=False)
+df_input = pd.read_csv(input_file)
 print("Input file loaded...")
 strat_values = df_input[stratify_by].unique()
 test_holes = []
