@@ -4,12 +4,12 @@
 all : doc/model_results.txt
 
 # Join hole-identified data sets (collar + PV drill), add rock class labels
-data/intermediate/labelled_holes.csv : data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv
-	python src/1_join_holes.py data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv data/intermediate/labelled_holes.csv
+data/intermediate/1_labelled_holes.csv : data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv
+	python src/1_join_holes.py data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv data/intermediate/1_labelled_holes.csv
 
 # Label telemetry data
-data/intermediate/joined_data.csv : data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/labelled_holes.csv
-	python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv data/intermediate/2_joined_data_test.csv
+data/intermediate/2_joined_data.csv : data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv
+	python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv data/intermediate/2_joined_data.csv
 
 # Split data into train and test sets
 data/intermediate/3-1_train.csv : data/intermediate/2_joined_data.csv
@@ -36,7 +36,7 @@ data/intermediate/6_join_feat.csv : data/intermediate/4_non_telem_features.csv d
 
 # Build model
 doc/model_results.txt : data/intermediate/6_join_feat.csv
-	python src/7_build_model.py data/intermediate/6_join_feat.csv rock_class model_results.txt
+	python src/7_build_model.py data/intermediate/6_join_feat.csv rock_class doc/model_results.txt
 
 # Clean up files
 clean :
