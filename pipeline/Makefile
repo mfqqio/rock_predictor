@@ -41,5 +41,4 @@ doc/model_results.txt : data/intermediate/6_join_feat.csv
 # Clean up files
 clean :
 	rm -f data/intermediate/*
-	rm -f eda_1.pdf
 	rm -f doc/*
