@@ -17,8 +17,8 @@ data/intermediate/3-1_train.csv : data/intermediate/2_joined_data.csv
 
 # EDA and sanity check report (1)
 # Use train data (telemetry and non-telemetry data)
-eda_1.pdf : eda_1.ipynb
-	jupyter nbconvert --to pdf --execute eda_1.ipynb
+doc/eda_1.pdf : notebook/eda_1.ipynb
+	jupyter nbconvert --to pdf --execute notebook/eda_1.ipynb
 
 # Feature engineering for non-telemetry data
 data/intermediate/4_non_telem_features.csv : data/intermediate/3-1_train.csv
