@@ -3,30 +3,23 @@
 """
 Created on Mon May  6 20:29 2019
 
-@author: Jim Pushor
-
-Performs preliminary EDA on joined and telemetry df. Useful for preliminary sanity check on data joins & manipulation
+Calculates the standard deviation of a telemetry feature
 """
 
-# Preliminary EDA script
-# import the required data sets
 # import the libraries
 import pandas as pd
 import sys
 
-
-
-
-
+# Function to calculate standard deviation of a list of variables/features
 def get_std(df, list_of_var):
     final = pd.DataFrame()
-    for var in list_of_var:
+    for var in list_of_var: # loop through the list of features
         mask = (df.FieldDesc == var)
         df1 = df[mask]
-        groups = df1.groupby('redrill_id')
-        std_results = pd.DataFrame(groups.agg('std')['FieldData'])
+        groups = df1.groupby('redrill_id') # group by redrill id
+        std_results = pd.DataFrame(groups.agg('std')['FieldData']) # calc 'std' on 'FieldData'
         std_results.columns=[var]
-        final = pd.concat([final, std_results], axis=1)
+        final = pd.concat([final, std_results], axis=1) # concatenate list of columns
     final['hole_id'] = final.index
     final = final.reset_index(drop=True)
     return final
