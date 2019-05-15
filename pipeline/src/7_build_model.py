@@ -10,6 +10,7 @@ This step trains an initial model using the provided training dataset.
 
 import pandas as pd
 import numpy as np
+import re
 import sys
 import pickle
 from sklearn.ensemble import RandomForestClassifier
@@ -49,10 +50,12 @@ if len(sys.argv) == 4:
     target_col = 'rock_class'
 
     feature_cols = ['total_drill_time',
-                 'redrill_flag',
-                 'drill_operator',
                  'penetration_rate_mph']
     
+    # Gets one-hot encoded drill operator column names and add to list of feature columns
+    drillop_cols = [col for col in list(df) if re.search(r'operator[0-9]+', col)] 
+    feature_cols = feature_cols + drillop_cols
+
     # Separate target and features
     X = df.loc[:, feature_cols] # Features columns
     y = df[[target_col]].astype(str) # Target column
@@ -72,11 +75,12 @@ if len(sys.argv) == 4:
                    }
     
     # Assess each model with cross-validation
+    k_folds = 8
     for model_name, model in models.items():
         print("Fitting %s model..." % model_name)
-        cv_scores = cross_val_score(model, X, y.values.ravel(), cv=4)
+        cv_scores = cross_val_score(model, X, y.values.ravel(), cv=k_folds)
         mean_cv_score = np.mean(cv_scores)
-        print("Cross-validation accuracy: %f\n" % mean_cv_score)
+        print("Cross-validation accuracy (%i-folds): %f\n" % (k_folds,mean_cv_score))
         
         results_dict['Classifier'].append(model_name)
         results_dict['CV Accuracy'].append(mean_cv_score)
