@@ -49,12 +49,17 @@ if len(sys.argv) == 4:
     
     target_col = 'rock_class'
 
+    # With vibration
+    vib_cols = ['Horizontal Vibration',
+                 'Vertical Vibration']
+    
     feature_cols = ['total_drill_time',
                  'penetration_rate_mph']
-    
+                 
     # Gets one-hot encoded drill operator column names and add to list of feature columns
     drillop_cols = [col for col in list(df) if re.search(r'operator[0-9]+', col)] 
-    feature_cols = feature_cols + drillop_cols
+    #feature_cols = feature_cols + drillop_cols
+    feature_cols = feature_cols + drillop_cols + vib_cols 
 
     # Separate target and features
     X = df.loc[:, feature_cols] # Features columns

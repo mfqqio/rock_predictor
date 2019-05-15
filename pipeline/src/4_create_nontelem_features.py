@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue May  7 14:04:42 2019
-
-@author: Carrie Cheung
-
 Creates "higher-level" non-telemetry features
 (e.g. drill operator, total drill time)
 """
 
 import pandas as pd
+import numpy as np
 import sys
-
-# makefile command
-# python create_nontelem_features.py ../eda_viz/join_master.csv non_telem_features.csv
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 # Get non-telemetry features for each hole,
 # specifically total drill time, drill operator, redrill flag.
@@ -37,23 +32,45 @@ def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, opera
     features['hole_id'] = features.index
     features = features.reset_index(drop=True)
 
-    # Map drill operator names to numerical values
-    features['drill_operator'] = pd.factorize(features['drill_operator'])[0]
+    # One-hot encode drill operator names 
+    features = encode_operator('drill_operator', df, features)
 
     # Make rock_class column a consistent type as string
     features['rock_class'] = features['rock_class'].astype(str)
 
     # Add penetration rate as a feature
-    depth_telem = df[df.FieldDesc == hole_depth_col] # Subset to hole depth data only
+    depth_telem = df[['Hole Depth', hole_id_col, 'timestamp']] # Subset to hole depth data only
     features = calc_penetration_rate(depth_telem, features, hole_id_col)
 
+    return features
+
+# Performs one-hot encoding on specified drill operator column and
+# returns original dataframe with one-hot encoded columns added
+def encode_operator(op_col, df, features):
+    # First label encode drill operators
+    values = np.array(features[op_col])
+    label_encoder = LabelEncoder()
+    integer_encoded = label_encoder.fit_transform(values)
+
+    # Then one-hot encode
+    onehot_encoder = OneHotEncoder(sparse=False, categories='auto')
+    integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+    onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+    
+    # Create column headings for each operator
+    num_ops = len(features[op_col].unique()) # Number of different drill operators
+    col_ops = ['operator'+str(n) for n in range(1, num_ops+1)] # Columns named Operator1, Operator2, etc.
+    onehot_op = pd.DataFrame(onehot_encoded, columns=col_ops)
+    
+    # Add one-hot encoded operator columns to features dataframe
+    features = pd.concat([features.reset_index(drop=True), onehot_op.reset_index(drop=True)], axis=1)
     return features
 
 # Calculates penetration rate for each hole (metres per hour)
 # and returns feature dataframe with this features included
 def calc_penetration_rate(depth_telem, feature_df, hole_id_col):
     # Get min & max of hole depth in time series
-    df = depth_telem.groupby(hole_id_col).agg(['min', 'max'])['FieldData']
+    df = depth_telem.groupby(hole_id_col).agg(['min', 'max'])['Hole Depth']
 
     # Calculate actual depth of hole drilled
     df['actual_hole_depth'] = df['max'] - df['min']

@@ -22,7 +22,8 @@ doc/eda_1.pdf : notebook/eda_1.ipynb
 
 # Feature engineering for non-telemetry data
 data/intermediate/4_non_telem_features.csv : data/intermediate/3-1_train.csv
-	python src/4_create_nontelem_features.py data/intermediate/3-1_train.csv data/intermediate/4_non_telem_features.csv
+	#python src/4_create_nontelem_features.py data/intermediate/3-1_train.csv data/intermediate/4_non_telem_features.csv
+	python src/4_create_nontelem_features.py data/raw/sample_wide.csv data/intermediate/4_non_telem_features.csv # For now, this points to a sample wide dataset
 
 # Feature engineering for telemetry data
 data/intermediate/5_telem_features.csv : data/intermediate/3-1_train.csv
