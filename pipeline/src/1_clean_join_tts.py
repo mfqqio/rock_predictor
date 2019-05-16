@@ -41,10 +41,50 @@ else: # parse input parameters from terminal or makefile
     input_telem_headers = args.input_telem_headers
     output_train = args.output_train
     output_test = args.output_test
-
+clean.hello()
 # Read all raw csv files
 df_labels = pd.read_csv(input_labels)
+print('Labels table dimensions:', df_labels.shape)
 df_class_mapping = pd.read_csv(input_class_mapping)
+print('Class mapping table dimensions:', df_class_mapping.shape)
 df_production = pd.read_csv(input_production)
+print('Production table dimensions:', df_production.shape)
 df_telemetry = pd.read_csv(input_telemetry)
+print('Telemetry table dimensions:', df_telemetry.shape)
 df_telem_headers = pd.read_csv(input_telem_headers)
+print('Telemetry headers table dimensions:', df_telem_headers.shape)
+
+# Cleaning df_labels and join with df_class_mapping
+df_labels = df_labels[['hole_id', 'x', 'y', 'z', 'COLLAR_TYPE', 'LITHO', 'PLANNED_RTYPE']]
+df_labels.rename(columns={'x':'x_collar',
+                       'y':'y_collar',
+                       'z':'z_collar',
+                       'LITHO':'litho_rock_type',
+                       'COLLAR_TYPE':'collar_type',
+                       'PLANNED_RTYPE':'exp_rock_type'},
+                 inplace=True)
+df_labels['exp_rock_type'] = df_labels['exp_rock_type'].str.strip()
+df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
+
+df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
+df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
+
+## need to test for duplicates
+
+df_production['hole_id'] = clean.create_hole_id(df_production['DrillPattern'], df_production['HoleId'])
+exclude_cols = ['DrillPattern', 'HoleID']
+df_production = df_production.loc[:, ~df_production.columns.isin(exclude_cols)]
+df_production['unix_start'] = clean.convert_utc2unix(df_production['UTCStartTime'])
+df_production['unix_end'] = clean.convert_utc2unix(df_production['UTCEndTime'])
+
+## need to drop redrills (duplicates) from df_production - let's use Gabriel's logic
+
+df_joined_holes = pd.merge(df_production, df_labels, how='left', left_on=['hole_id'], right_on = ['hole_id'])
+print('Joined labels + production dimensions:', df_joined_holes.shape)
+
+print(df_joined_holes.head())
+## Gabriel to add cleaning logic here
+
+## to include call to clean.make_wide
+
+## need to add train test split

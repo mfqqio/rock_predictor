@@ -4,6 +4,9 @@ Created in May 2019
 
 Collection of functions to clean and join raw data
 """
+import pandas as pd
+import numpy as np
+
 def hello():
   print("hello")
 
@@ -32,3 +35,17 @@ def remove_zero_rotation(rotations):
 
 def remove_head_position(head_diffs, min_head_diff):
     return head_diffs > min_head_diff
+
+def create_hole_id(drill_pattern, hole):
+    return drill_pattern + '-' + hole
+
+# Converts UTC format to UNIX timestamp
+def convert_utc2unix(utc):
+    utc = pd.to_datetime(utc)
+    return (utc - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
+
+def get_rock_class(rock_types, df_mapping):
+    df_rock_types = rock_types.to_frame()
+    df_rock_types.set_index(df_rock_types.columns[0])
+    rock_classes = pd.merge(df_rock_types, df_mapping, how='left', left_index=True, right_on = ['rock_type'])
+    return rock_classes["rock_class"]
