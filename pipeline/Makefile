@@ -25,7 +25,6 @@ data/intermediate/features.csv : data/raw/sample_wide.csv
 	python src/create_features.py data/raw/sample_wide.csv data/intermediate/features.csv
 	#python src/create_features.py data/intermediate/3-1_train.csv data/intermediate/features.csv
 
-
 # EDA and sanity check report (2)
 
 # Build model
