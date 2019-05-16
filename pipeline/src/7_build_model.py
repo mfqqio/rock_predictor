@@ -59,7 +59,7 @@ if len(sys.argv) == 4:
     # Gets one-hot encoded drill operator column names and add to list of feature columns
     drillop_cols = [col for col in list(df) if re.search(r'operator[0-9]+', col)] 
     #feature_cols = feature_cols + drillop_cols
-    feature_cols = feature_cols + drillop_cols + vib_cols 
+    feature_cols = feature_cols + drillop_cols + ['prop_nowater']
 
     # Separate target and features
     X = df.loc[:, feature_cols] # Features columns

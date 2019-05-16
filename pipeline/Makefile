@@ -20,24 +20,17 @@ data/intermediate/3-1_train.csv : data/intermediate/2_joined_data.csv
 doc/eda_1.pdf : notebook/eda_1.ipynb
 	jupyter nbconvert --to pdf --execute notebook/eda_1.ipynb
 
-# Feature engineering for non-telemetry data
-data/intermediate/4_non_telem_features.csv : data/intermediate/3-1_train.csv
-	#python src/4_create_nontelem_features.py data/intermediate/3-1_train.csv data/intermediate/4_non_telem_features.csv
-	python src/4_create_nontelem_features.py data/raw/sample_wide.csv data/intermediate/4_non_telem_features.csv # For now, this points to a sample wide dataset
+# Feature engineering
+data/intermediate/features.csv : data/raw/sample_wide.csv
+	python src/create_features.py data/raw/sample_wide.csv data/intermediate/features.csv
+	#python src/create_features.py data/intermediate/3-1_train.csv data/intermediate/features.csv
 
-# Feature engineering for telemetry data
-data/intermediate/5_telem_features.csv : data/intermediate/3-1_train.csv
-	python src/5_telem_features.py data/intermediate/3-1_train.csv data/intermediate/5_telem_features.csv
-
-# Join and prepare inputs for model
-data/intermediate/6_join_feat.csv : data/intermediate/4_non_telem_features.csv data/intermediate/5_telem_features.csv
-	python src/6_join_features.py data/intermediate/5_telem_features.csv data/intermediate/4_non_telem_features.csv data/intermediate/6_join_feat.csv
 
 # EDA and sanity check report (2)
 
 # Build model
-doc/model_results.txt : data/intermediate/6_join_feat.csv
-	python src/7_build_model.py data/intermediate/6_join_feat.csv rock_class doc/model_results.txt
+doc/model_results.txt : data/intermediate/features.csv
+	python src/7_build_model.py data/intermediate/features.csv rock_class doc/model_results.txt
 
 # Clean up files
 clean :

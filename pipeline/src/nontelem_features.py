@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Creates "higher-level" non-telemetry features
+Creates "higher-level" non-telemetry features for each hole
 (e.g. drill operator, total drill time)
 """
 
 import pandas as pd
 import numpy as np
-import sys
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 # Get non-telemetry features for each hole,
-# specifically total drill time, drill operator, redrill flag.
+# (e.g. total drill time, drill operator)
 def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, operator_col, redrill_col, hole_depth_col):
     # Group by hole IDs
     hole_grps = data.groupby(hole_id_col)
@@ -33,13 +32,13 @@ def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, opera
     features = features.reset_index(drop=True)
 
     # One-hot encode drill operator names 
-    features = encode_operator('drill_operator', df, features)
+    features = encode_operator('drill_operator', data, features)
 
     # Make rock_class column a consistent type as string
     features['rock_class'] = features['rock_class'].astype(str)
 
     # Add penetration rate as a feature
-    depth_telem = df[['Hole Depth', hole_id_col, 'timestamp']] # Subset to hole depth data only
+    depth_telem = data[['Hole Depth', hole_id_col, 'timestamp']] # Subset to hole depth data only
     features = calc_penetration_rate(depth_telem, features, hole_id_col)
 
     return features
@@ -90,27 +89,3 @@ def calc_penetration_rate(depth_telem, feature_df, hole_id_col):
     exclude_cols = ['min', 'max', 'actual_hole_depth']
 
     return df.loc[:, ~df.columns.isin(exclude_cols)]
-
-#### MAIN
-# First check if command line arguments are provided before launching main script
-if len(sys.argv) == 3:
-    data_path = sys.argv[1]
-    output_file_path = sys.argv[2]
-
-    # Read master joined data from file
-    print('Reading input data...')
-    df = pd.read_csv(data_path, low_memory=False)
-    print('Master joined table dimensions:', df.shape)
-
-    nontelem_feats = create_nontelem_features(df,
-                                              target_col='litho_rock_class',
-                                              hole_id_col='redrill_id',
-                                              drilltime_col='DrillTime',
-                                              operator_col='FirstName',
-                                              redrill_col='redrill',
-                                              hole_depth_col='Hole Depth')
-
-    # Output calculated features to file
-    nontelem_feats.to_csv(output_file_path, index=False)
-
-    print('Non-telemetry features calculated and written to file:', output_file_path)
