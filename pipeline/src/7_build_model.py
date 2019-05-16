@@ -16,6 +16,7 @@ import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import GradientBoostingClassifier
 
 # makefile command
 # python build_model.py non_telem_features.csv rock_class model_results.txt
@@ -57,18 +58,24 @@ if len(sys.argv) == 4:
                  'penetration_rate_mph']
     
     telem_cols = ['prop_nowater', 'prop_max_pulldown', 'prop_half_pulldown']
+    
+    # Exclude columns as features
+    to_exclude = [target_col, 'hole_id']
                  
     # Gets one-hot encoded drill operator column names and add to list of feature columns
     drillop_cols = [col for col in list(df) if re.search(r'operator[0-9]+', col)] 
     feature_cols = feature_cols + drillop_cols + telem_cols
 
     # Separate target and features
-    X = df.loc[:, feature_cols] # Features columns
+    #X = df.loc[:, feature_cols] # Features columns
+    X = df[df.columns.difference(to_exclude)]
     y = df[[target_col]].astype(str) # Target column
     
     # Models to try
     models = {
-        'random forest' : RandomForestClassifier(n_estimators=10),
+        'random forest' : RandomForestClassifier(n_estimators=100),
+        'gradient boost': GradientBoostingClassifier(n_estimators=100, learning_rate=1.0,
+                                 max_depth=2, random_state=0),
         'logistic regression': LogisticRegression(solver='lbfgs', 
                                                   multi_class='multinomial',
                                                   max_iter=2000) # For now, this uses L2 regularization

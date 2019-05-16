@@ -37,7 +37,7 @@ if len(sys.argv) == 3:
     pulldown_col = 'Pulldown Force'
     
     telem_features = ["Horizontal Vibration", "Vertical Vibration", "Pulldown Force",
-    "Bailing Air Pressure", "Head Position", "Hole Depth", "Rotary Speed", "Water Flow"]
+    "Bailing Air Pressure", "Head Position", "Hole Depth", "Rotary Speed ", "Water Flow"]
     
     # Creates non-telemetry features
     features = create_nontelem_features(df,
