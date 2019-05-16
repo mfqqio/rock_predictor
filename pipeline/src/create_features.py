@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Main driver for creating features. 
+Main driver for creating features.
 
-This script imports and calls functions containing logic that engineers 
+This script imports and calls functions containing logic that engineers
 features from input data. Output is a dataframe of features for each hole.
 """
 
@@ -12,6 +12,7 @@ import numpy as np
 import sys
 from nontelem_features import create_nontelem_features
 from telem_features import zero_water_flow, prop_max_pulldown, prop_half_pulldown
+from stats_features import get_std, get_median, get_mean, get_percentile
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
@@ -35,6 +36,9 @@ if len(sys.argv) == 3:
     water_col = 'Water Flow'
     pulldown_col = 'Pulldown Force'
     
+    telem_features = ["Horizontal Vibration", "Vertical Vibration", "Pulldown Force",
+    "Bailing Air Pressure", "Head Position", "Hole Depth", "Rotary Speed", "Water Flow"]
+    
     # Creates non-telemetry features
     features = create_nontelem_features(df,
                                         target_col,
@@ -53,10 +57,19 @@ if len(sys.argv) == 3:
     # Add proportion of time at less than half of max pulldown force
     features['prop_half_pulldown'] = prop_half_pulldown(df, hole_id_col, pulldown_col)
     #print(features.groupby('rock_class').agg(['mean'])['prop_half_pulldown'])
+
+    # Add stat summary features
+    features = pd.concat([features, get_std(df, telem_features)], axis=1)
+    features = pd.concat([features, get_median(df, telem_features)], axis=1)
+    features = pd.concat([features, get_mean(df, telem_features)], axis=1)
     
+    percentile_list = [0.1, 0.25, 0.75, 0.95]
+    features = pd.concat([features, get_percentile(df, telem_features, percentile_list)], axis=1)
+
     # Drop any intermediate columns
     features = features.drop(['drill_operator'], axis=1)
-    
+
     # Output calculated features to file
     features.to_csv(output_file_path, index=False)
+
     print('Features calculated and written to file:', output_file_path)
