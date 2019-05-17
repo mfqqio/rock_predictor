@@ -16,13 +16,13 @@ import numpy as np
 import argparse, sys
 
 if len(sys.argv)<7: # then running in dev mode (can remove in production)
-    input_labels = "../data/raw/190501001_COLLAR.csv"
-    input_class_mapping = "../data/raw/rock_class_mapping.csv"
-    input_production = "../data/raw/190506001_PVDrillProduction.csv"
-    input_telemetry = "../data/raw/190416001_MCMcshiftparam.csv"
-    input_telem_headers = "../data/raw/dbo.MCCONFMcparam_rawdata.csv"
-    output_train = "../data/intermediate/train.csv"
-    output_test = "../data/intermediate/test.csv"
+    input_labels = "data/raw/190501001_COLLAR.csv"
+    input_class_mapping = "data/raw/rock_class_mapping.csv"
+    input_production = "data/raw/190506001_PVDrillProduction.csv"
+    input_telemetry = "data/raw/190416001_MCMcshiftparam.csv"
+    input_telem_headers = "data/raw/dbo.MCCONFMcparam_rawdata.csv"
+    output_train = "data/intermediate/train.csv"
+    output_test = "data/intermediate/test.csv"
 else: # parse input parameters from terminal or makefile
     parser = argparse.ArgumentParser()
     parser.add_argument("input_labels")
@@ -41,21 +41,22 @@ else: # parse input parameters from terminal or makefile
     input_telem_headers = args.input_telem_headers
     output_train = args.output_train
     output_test = args.output_test
-clean.hello()
+
 # Read all raw csv files
-df_labels = pd.read_csv(input_labels)
+cols = ['hole_id', 'x', 'y', 'z', 'COLLAR_TYPE', 'LITHO', 'PLANNED_RTYPE']
+df_labels = pd.read_csv(input_labels, usecols=cols)
 print('Labels table dimensions:', df_labels.shape)
 df_class_mapping = pd.read_csv(input_class_mapping)
 print('Class mapping table dimensions:', df_class_mapping.shape)
 df_production = pd.read_csv(input_production)
 print('Production table dimensions:', df_production.shape)
-df_telemetry = pd.read_csv(input_telemetry)
+cols = ['FieldTimestamp', 'ShiftId', 'FieldStatus', 'FieldId', 'FieldData', 'FieldX', 'FieldY']
+df_telemetry = pd.read_csv(input_telemetry, usecols=cols, dtype={"FieldOperid": object})
 print('Telemetry table dimensions:', df_telemetry.shape)
 df_telem_headers = pd.read_csv(input_telem_headers)
 print('Telemetry headers table dimensions:', df_telem_headers.shape)
 
 # Cleaning df_labels and join with df_class_mapping
-df_labels = df_labels[['hole_id', 'x', 'y', 'z', 'COLLAR_TYPE', 'LITHO', 'PLANNED_RTYPE']]
 df_labels.rename(columns={'x':'x_collar',
                        'y':'y_collar',
                        'z':'z_collar',
@@ -65,26 +66,35 @@ df_labels.rename(columns={'x':'x_collar',
                  inplace=True)
 df_labels['exp_rock_type'] = df_labels['exp_rock_type'].str.strip()
 df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
-
 df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
 df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
 
-## need to test for duplicates
+df_production['hole_id'] = clean.create_hole_id(df_production['DrillPattern'], df_production['HoleID'])
+df_production = df_production.drop(columns=['DrillPattern', 'HoleID'])
+df_production['unix_start'] = clean.convert_utc2unix(df_production['UTCStartTime'], timezone="UTC")
+df_production['unix_end'] = clean.convert_utc2unix(df_production['UTCEndTime'], timezone="UTC")
+df_production = df_production.drop_duplicates(subset=["hole_id"], keep=False)
 
-df_production['hole_id'] = clean.create_hole_id(df_production['DrillPattern'], df_production['HoleId'])
-exclude_cols = ['DrillPattern', 'HoleID']
-df_production = df_production.loc[:, ~df_production.columns.isin(exclude_cols)]
-df_production['unix_start'] = clean.convert_utc2unix(df_production['UTCStartTime'])
-df_production['unix_end'] = clean.convert_utc2unix(df_production['UTCEndTime'])
+df_prod_labels = pd.merge(df_production, df_labels, how='left', left_on=['hole_id'], right_on = ['hole_id'])
+print('Joined labels + production dimensions:', df_prod_labels.shape)
 
-## need to drop redrills (duplicates) from df_production - let's use Gabriel's logic
+#Removing problematic datapoints
+df_prod_labels = df_prod_labels[df_prod_labels.collar_type != "DESIGN"] # We just want ACTUAL drills, not designed ones.
+df_prod_labels = df_prod_labels[df_prod_labels.ActualDepth != 0] #Remove drills that did not actually drilled
+df_prod_labels = df_prod_labels[(df_prod_labels.unix_end - df_prod_labels.unix_start) > 60] #Remove drills that lasted less than a minute
+print('df_prod_labels dimensions after cleaning:', df_prod_labels.shape)
 
-df_joined_holes = pd.merge(df_production, df_labels, how='left', left_on=['hole_id'], right_on = ['hole_id'])
-print('Joined labels + production dimensions:', df_joined_holes.shape)
+## TELEMETRY
+# import pdb; pdb.set_trace()
+#FieldTimestamp is not in UTC. Let's correct that
+df_telemetry["utc_field_timestamp"] = clean.convert_utc2unix(df_telemetry.FieldTimestamp, timezone="Canada/Eastern", unit="s")
 
-print(df_joined_holes.head())
-## Gabriel to add cleaning logic here
+df_telemetry = pd.pivot_table(df_telemetry, values='FieldData', columns='FieldId', index=['utc_field_timestamp','ShiftId','FieldX', 'FieldY'])
+cols = {"42010001": "rot", "42010005": "pull",
+        "42010008": "air", "4201000B": "vvib",
+        "4201000C": "hvib", "4201000E": "water",
+        "4201000F": "depth", "42010010": "head"}
+df_telemetry = df_telemetry.rename(columns=cols)
 
-## to include call to clean.make_wide
-
+print(df_telemetry.shape)
 ## need to add train test split

@@ -40,12 +40,15 @@ def create_hole_id(drill_pattern, hole):
     return drill_pattern + '-' + hole
 
 # Converts UTC format to UNIX timestamp
-def convert_utc2unix(utc):
-    utc = pd.to_datetime(utc)
+def convert_utc2unix(utc, timezone, unit="ns"):
+    utc = pd.to_datetime(utc, unit=unit)
+    utc = utc.dt.tz_localize(timezone)
+    utc = utc.dt.tz_convert(None)
+
     return (utc - pd.Timestamp("1970-01-01")) // pd.Timedelta('1s')
 
 def get_rock_class(rock_types, df_mapping):
     df_rock_types = rock_types.to_frame()
-    df_rock_types.set_index(df_rock_types.columns[0])
+    df_rock_types.set_index(df_rock_types.columns[0], inplace=True)
     rock_classes = pd.merge(df_rock_types, df_mapping, how='left', left_index=True, right_on = ['rock_type'])
-    return rock_classes["rock_class"]
+    return rock_classes["rock_class"].values
