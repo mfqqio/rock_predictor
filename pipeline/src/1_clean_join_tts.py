@@ -23,6 +23,10 @@ if len(sys.argv)<7: # then running in dev mode (can remove in production)
     input_telem_headers = "data/raw/dbo.MCCONFMcparam_rawdata.csv"
     output_train = "data/intermediate/train.csv"
     output_test = "data/intermediate/test.csv"
+    max_diff = 0
+    min_time = 60
+    min_depth = 5
+
 else: # parse input parameters from terminal or makefile
     parser = argparse.ArgumentParser()
     parser.add_argument("input_labels")
@@ -32,6 +36,9 @@ else: # parse input parameters from terminal or makefile
     parser.add_argument("input_telem_headers")
     parser.add_argument("output_train")
     parser.add_argument("output_test")
+    parser.add_argument("max_diff")
+    parser.add_argument("min_time")
+    parser.add_argument("min_depth")
     args = parser.parse_args()
 
     input_labels = args.input_labels
@@ -87,9 +94,19 @@ print('df_prod_labels dimensions after cleaning:', df_prod_labels.shape)
 ## TELEMETRY
 # import pdb; pdb.set_trace()
 #FieldTimestamp is not in UTC. Let's correct that
-df_telemetry["utc_field_timestamp"] = clean.convert_utc2unix(df_telemetry.FieldTimestamp, timezone="Canada/Eastern", unit="s")
+df_telemetry["utc_field_timestamp"] = clean.convert_utc2unix(
+    df_telemetry.FieldTimestamp,
+    timezone="Canada/Eastern",
+    unit="s")
 
-df_telemetry = pd.pivot_table(df_telemetry, values='FieldData', columns='FieldId', index=['utc_field_timestamp','ShiftId','FieldX', 'FieldY'])
+#There are repeated timestamps for the same FieldIds, which is an anomaly.
+#We're taking the mean of those points
+df_telemetry = pd.pivot_table(df_telemetry,
+    values='FieldData',
+    columns='FieldId',
+    index=['utc_field_timestamp','ShiftId','FieldX', 'FieldY'],
+    aggfunc='mean')
+
 cols = {"42010001": "rot", "42010005": "pull",
         "42010008": "air", "4201000B": "vvib",
         "4201000C": "hvib", "4201000E": "water",
@@ -97,4 +114,38 @@ cols = {"42010001": "rot", "42010005": "pull",
 df_telemetry = df_telemetry.rename(columns=cols)
 
 print(df_telemetry.shape)
+
+# Identify signals purely on Hole Depth
+df_telemetry.sort_index(inplace=True)
+df_telemetry["depth_diff"] = df_telemetry.depth.diff().fillna(0)
+df_telemetry["hole_index"] = df_telemetry.depth_diff < max_diff
+df_telemetry["hole_index"] = df_telemetry.hole_index * 1
+df_telemetry["hole_index"] = df_telemetry.hole_index.cumsum()
+print("Number of holes: ", df_telemetry.hole_index.nunique())
+
+# Getting info from individual holes
+df_telem_drills = (df_telemetry
+    .reset_index()
+    .groupby("hole_index")
+    .agg({"utc_field_timestamp": ['min', 'max'],
+          "depth": ['min', 'max']})
+    )
+df_telem_drills.columns = ["drill_start", "drill_end", "initial_depth", "final_depth"]
+df_telem_drills["drilling_time"] = df_telem_drills.drill_end - df_telem_drills.drill_start
+df_telem_drills["drilling_depth"] = df_telem_drills.final_depth - df_telem_drills.initial_depth
+df_telem_drills.reset_index(inplace=True)
+
+# Cleaning noisy drills
+df_telem_drills.dropna(inplace=True)
+df_telem_drills = df_telem_drills[df_telem_drills.drilling_time > min_time]
+df_telem_drills = df_telem_drills[df_telem_drills.drilling_depth > min_depth]
+
+print("Number of holes after cleaning: ", df_telem_drills.shape)
+
+
+
+
+
+
+
 ## need to add train test split
