@@ -118,15 +118,15 @@ print(df_telemetry.shape)
 # Identify signals purely on Hole Depth
 df_telemetry.sort_index(inplace=True)
 df_telemetry["depth_diff"] = df_telemetry.depth.diff().fillna(0)
-df_telemetry["hole_index"] = df_telemetry.depth_diff < max_diff
-df_telemetry["hole_index"] = df_telemetry.hole_index * 1
-df_telemetry["hole_index"] = df_telemetry.hole_index.cumsum()
-print("Number of holes: ", df_telemetry.hole_index.nunique())
+df_telemetry["hole_telem_id"] = df_telemetry.depth_diff < max_diff
+df_telemetry["hole_telem_id"] = df_telemetry.hole_telem_id * 1
+df_telemetry["hole_telem_id"] = df_telemetry.hole_telem_id.cumsum()
+print("Number of holes: ", df_telemetry.hole_telem_id.nunique())
 
 # Getting info from individual holes
 df_telem_drills = (df_telemetry
     .reset_index()
-    .groupby("hole_index")
+    .groupby("hole_telem_id")
     .agg({"utc_field_timestamp": ['min', 'max'],
           "depth": ['min', 'max']})
     )
@@ -142,10 +142,22 @@ df_telem_drills = df_telem_drills[df_telem_drills.drilling_depth > min_depth]
 
 print("Number of holes after cleaning: ", df_telem_drills.shape)
 
+# Match Provision and Telemetry data
+df_prod_telem = clean.join_prod_telemetry(df_prod_labels.unix_start,
+                                    df_prod_labels.unix_end,
+                                    df_prod_labels.hole_id,
+                                    df_telem_drills.drill_start,
+                                    df_telem_drills.drill_end,
+                                    df_telem_drills.hole_telem_id)
 
+print("Number of matches between Provision and Telemetry: ", df_prod_telem.shape)
 
+# Clean joining anomalies
+double_joins_mask = clean.identify_double_joins(df_prod_telem.telem_id)
+df_prod_telem = df_prod_telem[double_joins_mask]
 
+print("Number of matches between Provision and Telemetry, after cleaning: ", df_prod_telem.shape)
 
-
+# Join df
 
 ## need to add train test split

@@ -53,7 +53,23 @@ def get_rock_class(rock_types, df_mapping):
     rock_classes = pd.merge(df_rock_types, df_mapping, how='left', left_index=True, right_on = ['rock_type'])
     return rock_classes["rock_class"].values
 
-def match_telemetry_labels(telem_id, telem_start, telem_end, labels_start, labels_end, labels_id):
-    labels_midpoints = (labels_start + labels_end)/2
+def join_prod_telemetry(prod_start, prod_end, prod_id, telem_start, telem_end, telem_id):
+    prod_midpoints = (prod_start.values + prod_end.values)/2
+    np_telem_start = telem_start.values
+    np_telem_end = telem_end.values
 
-    i, j = np.nonzero((labels_midpoints[:, None] >= drill_starts) & (labels_midpoints[:, None] <= drill_ends))
+    i, j = np.nonzero((prod_midpoints[:, None] >= np_telem_start) & (prod_midpoints[:, None] <= np_telem_end))
+
+    df_prod_telem = pd.DataFrame(
+    np.column_stack([prod_id.values[i], telem_id.values[j]]),
+    columns=["prod_id", "telem_id"]
+    )
+
+    return df_prod_telem
+
+def identify_double_joins(telem_id):
+    g = telem_id.groupby(telem_id).count()
+    double_joins_list = g[g > 1].index.tolist()
+    double_joins_mask = ~telem_id.index.isin(double_joins_list)
+
+    return double_joins_mask
