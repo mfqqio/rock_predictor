@@ -52,3 +52,8 @@ def get_rock_class(rock_types, df_mapping):
     df_rock_types.set_index(df_rock_types.columns[0], inplace=True)
     rock_classes = pd.merge(df_rock_types, df_mapping, how='left', left_index=True, right_on = ['rock_type'])
     return rock_classes["rock_class"].values
+
+def match_telemetry_labels(telem_id, telem_start, telem_end, labels_start, labels_end, labels_id):
+    labels_midpoints = (labels_start + labels_end)/2
+
+    i, j = np.nonzero((labels_midpoints[:, None] >= drill_starts) & (labels_midpoints[:, None] <= drill_ends))
