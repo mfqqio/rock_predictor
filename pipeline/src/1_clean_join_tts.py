@@ -113,51 +113,65 @@ cols = {"42010001": "rot", "42010005": "pull",
         "4201000F": "depth", "42010010": "head"}
 df_telemetry = df_telemetry.rename(columns=cols)
 
-print(df_telemetry.shape)
+print('df_telemetry dimensions in wide format:', df_telemetry.shape)
 
 # Identify signals purely on Hole Depth
 df_telemetry.sort_index(inplace=True)
 df_telemetry["depth_diff"] = df_telemetry.depth.diff().fillna(0)
-df_telemetry["hole_telem_id"] = df_telemetry.depth_diff < max_diff
-df_telemetry["hole_telem_id"] = df_telemetry.hole_telem_id * 1
-df_telemetry["hole_telem_id"] = df_telemetry.hole_telem_id.cumsum()
-print("Number of holes: ", df_telemetry.hole_telem_id.nunique())
+df_telemetry["telem_id"] = df_telemetry.depth_diff < max_diff
+df_telemetry["telem_id"] = df_telemetry.telem_id * 1
+df_telemetry["telem_id"] = df_telemetry.telem_id.cumsum()
+print("Number of holes: ", df_telemetry.telem_id.nunique())
 
 # Getting info from individual holes
-df_telem_drills = (df_telemetry
+df_telem_holes = (df_telemetry
     .reset_index()
-    .groupby("hole_telem_id")
+    .groupby("telem_id")
     .agg({"utc_field_timestamp": ['min', 'max'],
           "depth": ['min', 'max']})
     )
-df_telem_drills.columns = ["drill_start", "drill_end", "initial_depth", "final_depth"]
-df_telem_drills["drilling_time"] = df_telem_drills.drill_end - df_telem_drills.drill_start
-df_telem_drills["drilling_depth"] = df_telem_drills.final_depth - df_telem_drills.initial_depth
-df_telem_drills.reset_index(inplace=True)
+df_telem_holes.columns = ["drill_start", "drill_end", "initial_depth", "final_depth"]
+df_telem_holes["drilling_time"] = df_telem_holes.drill_end - df_telem_holes.drill_start
+df_telem_holes["drilling_depth"] = df_telem_holes.final_depth - df_telem_holes.initial_depth
+df_telem_holes.reset_index(inplace=True)
 
 # Cleaning noisy drills
-df_telem_drills.dropna(inplace=True)
-df_telem_drills = df_telem_drills[df_telem_drills.drilling_time > min_time]
-df_telem_drills = df_telem_drills[df_telem_drills.drilling_depth > min_depth]
+df_telem_holes.dropna(inplace=True)
+df_telem_holes = df_telem_holes[df_telem_holes.drilling_time > min_time]
+df_telem_holes = df_telem_holes[df_telem_holes.drilling_depth > min_depth]
 
-print("Number of holes after cleaning: ", df_telem_drills.shape)
+print("Number of holes after cleaning: ", df_telem_holes.shape)
 
 # Match Provision and Telemetry data
-df_prod_telem = clean.join_prod_telemetry(df_prod_labels.unix_start,
+df_join_lookup = clean.join_prod_telemetry(df_prod_labels.unix_start,
                                     df_prod_labels.unix_end,
                                     df_prod_labels.hole_id,
-                                    df_telem_drills.drill_start,
-                                    df_telem_drills.drill_end,
-                                    df_telem_drills.hole_telem_id)
+                                    df_telem_holes.drill_start,
+                                    df_telem_holes.drill_end,
+                                    df_telem_holes.telem_id)
 
-print("Number of matches between Provision and Telemetry: ", df_prod_telem.shape)
+print("Number of matches between Provision and Telemetry: ", df_join_lookup.shape)
 
 # Clean joining anomalies
-double_joins_mask = clean.identify_double_joins(df_prod_telem.telem_id)
-df_prod_telem = df_prod_telem[double_joins_mask]
+double_joins_mask = clean.identify_double_joins(df_join_lookup.telem_id)
+df_join_lookup = df_join_lookup[double_joins_mask]
 
-print("Number of matches between Provision and Telemetry, after cleaning: ", df_prod_telem.shape)
+print("Number of matches between Provision and Telemetry, after cleaning: ", df_join_lookup.shape)
 
 # Join df
+df_output = pd.merge(df_telemetry, df_join_lookup, how="inner", on="telem_id")
+df_output = pd.merge(df_output, df_prod_labels, how="left", left_on="prod_id", right_on="hole_id")
+
+print("Final data shape: ", df_output.shape)
 
 ## need to add train test split
+df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=0.2, stratify_by="rock_type")
+
+print("Final train shape: ", df_train.shape)
+print("Final test shape: ", df_test.shape)
+
+print("Saving output files...")
+df_train.to_csv(output_train, index=False)
+df_test.to_csv(output_test, index=False)
+
+print("Data cleaning complete!")

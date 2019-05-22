@@ -60,20 +60,23 @@ def join_prod_telemetry(prod_start, prod_end, prod_id, telem_start, telem_end, t
     i, j = np.nonzero((prod_midpoints[:, None] >= np_telem_start) & (prod_midpoints[:, None] <= np_telem_end))
 
     df_prod_telem = pd.DataFrame(
-    np.column_stack([prod_id.values[i], telem_id.values[j]]),
-    columns=["prod_id", "telem_id"]
+        data={"prod_id": prod_id.values[i],
+              "telem_id": telem_id.values[j]
+        }
+    # np.column_stack([prod_id.values[i], telem_id.values[j]]),
+    # columns=["prod_id", "telem_id"]
     )
-
+    # import pdb; pdb.set_trace()
     return df_prod_telem
 
-    def identify_double_joins(telem_id):
-        g = telem_id.groupby(telem_id).count()
-        double_joins_list = g[g > 1].index.tolist()
-        double_joins_mask = ~telem_id.index.isin(double_joins_list)
+def identify_double_joins(telem_id):
+    g = telem_id.groupby(telem_id).count()
+    double_joins_list = g[g > 1].index.tolist()
+    double_joins_mask = ~telem_id.index.isin(double_joins_list)
 
-        return double_joins_mask
+    return double_joins_mask
 
-def train_test_split(df, id_col, test_prop=0.8, stratify_by=None):
+def train_test_split(df, id_col, test_prop=0.2, stratify_by=None):
     test_holes = []
     if stratify_by is None:
         strat_holes = df[id_col].unique()
