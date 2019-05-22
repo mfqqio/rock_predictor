@@ -6,6 +6,7 @@ Collection of helper functions to clean, join, and train-test-split the raw data
 """
 import pandas as pd
 import numpy as np
+import random
 
 def hello():
   print("hello")
@@ -76,7 +77,8 @@ def identify_double_joins(telem_id):
 
     return double_joins_mask
 
-def train_test_split(df, id_col, test_prop=0.2, stratify_by=None):
+def train_test_split(df, id_col, test_prop=0.2, stratify_by=None, seed=123):
+    random.seed(seed)
     test_holes = []
     if stratify_by is None:
         strat_holes = df[id_col].unique()

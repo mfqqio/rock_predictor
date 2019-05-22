@@ -165,7 +165,7 @@ df_output = pd.merge(df_output, df_prod_labels, how="left", left_on="prod_id", r
 print("Final data shape: ", df_output.shape)
 
 ## need to add train test split
-df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=0.2, stratify_by="rock_type")
+df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=0.2, stratify_by="litho_rock_type")
 
 print("Final train shape: ", df_train.shape)
 print("Final test shape: ", df_test.shape)
