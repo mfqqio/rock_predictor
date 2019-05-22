@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created in May 2019
-
-@authors: Carrie Cheung, Gabriel Bogo, Shayne Andrews, Jim Pushor
-
-Process raw data into a fully cleaned and joined dataset.
+Process raw data into a fully cleaned and joined dataset, then export train-test-split into csv.
 Inputs: 5 raw csv files: COLLAR, MCM (telemetry), PVDrill, MCCONFM, rock_class_mapping
 Outputs: 2 csv files: train, test
 """
 
-import clean # support functions live here
+from helpers import clean # support functions live here
 import pandas as pd
 import numpy as np
 import argparse, sys
@@ -26,6 +22,7 @@ if len(sys.argv)<7: # then running in dev mode (can remove in production)
     max_diff = 0
     min_time = 60
     min_depth = 5
+    test_prop = 0.2
 
 else: # parse input parameters from terminal or makefile
     parser = argparse.ArgumentParser()
@@ -39,6 +36,7 @@ else: # parse input parameters from terminal or makefile
     parser.add_argument("max_diff")
     parser.add_argument("min_time")
     parser.add_argument("min_depth")
+    parser.add_argument("test_prop")
     args = parser.parse_args()
 
     input_labels = args.input_labels
@@ -48,6 +46,10 @@ else: # parse input parameters from terminal or makefile
     input_telem_headers = args.input_telem_headers
     output_train = args.output_train
     output_test = args.output_test
+    max_diff = args.max_diff
+    min_time = args.min_time
+    min_depth = args.min_depth
+    test_prop = args.test_prop
 
 # Read all raw csv files
 cols = ['hole_id', 'x', 'y', 'z', 'COLLAR_TYPE', 'LITHO', 'PLANNED_RTYPE']
@@ -110,10 +112,18 @@ df_telemetry = pd.pivot_table(df_telemetry,
 cols = {"42010001": "rot", "42010005": "pull",
         "42010008": "air", "4201000B": "vvib",
         "4201000C": "hvib", "4201000E": "water",
-        "4201000F": "depth", "42010010": "head"}
+        "4201000F": "depth", "42010010": "pos"}
 df_telemetry = df_telemetry.rename(columns=cols)
 
 print('df_telemetry dimensions in wide format:', df_telemetry.shape)
+
+# initial cleaning of raw telemetry data
+df_telemetry.dropna(inplace=True)
+df_telemetry["pos_lag1_diff"] = df_telemetry.pos.diff().fillna(0)
+df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
+df_telemetry = df_telemetry[df_telemetry.rot > 0]
+
+print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)
 
 # Identify signals purely on Hole Depth
 df_telemetry.sort_index(inplace=True)
@@ -159,19 +169,19 @@ df_join_lookup = df_join_lookup[double_joins_mask]
 print("Number of matches between Provision and Telemetry, after cleaning: ", df_join_lookup.shape)
 
 # Join df
-df_output = pd.merge(df_telemetry, df_join_lookup, how="inner", on="telem_id")
-df_output = pd.merge(df_output, df_prod_labels, how="left", left_on="prod_id", right_on="hole_id")
+df_output = pd.merge(df_telemetry.reset_index(), df_join_lookup, how="inner", on="telem_id")
+df_output = pd.merge(df_output, df_prod_labels, how="left", on="hole_id")
 
 print("Final data shape: ", df_output.shape)
 
 ## need to add train test split
-df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=0.2, stratify_by="litho_rock_type")
+df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=test_prop, stratify_by="litho_rock_type")
 
 print("Final train shape: ", df_train.shape)
 print("Final test shape: ", df_test.shape)
 
 print("Saving output files...")
-df_train.to_csv(output_train, index=False)
-df_test.to_csv(output_test, index=False)
+df_train.to_csv(output_train, index=True)
+df_test.to_csv(output_test, index=True)
 
 print("Data cleaning complete!")

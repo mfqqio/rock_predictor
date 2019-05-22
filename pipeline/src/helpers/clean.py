@@ -1,35 +1,6 @@
-"""
-Created in May 2019
-@authors: Carrie Cheung, Gabriel Bogo, Shayne Andrews, Jim Pushor
-
-Collection of helper functions to clean, join, and train-test-split the raw data
-"""
 import pandas as pd
 import numpy as np
 import random
-
-def hello():
-  print("hello")
-
-def convert_time(list):
-    return list
-
-def reindex_duplicates(list):
-    return list
-
-def make_wide(df):
-    return df # reduce from ~2m rows to 300k
-
-def identify_telem_holes(hole_depth, max_diff):
-    return list # new_hole_index vector
-
-def group_holes(new_hole_index, timestamps, hole_depth):
-    return df # 1309 rows grouped by new_hole_index
-
-#def remove_na(df)
-
-def remove_drill_time(times, min_time):
-    return time_diffs > min_time
 
 def remove_zero_rotation(rotations):
     return rotations > 0
@@ -61,7 +32,7 @@ def join_prod_telemetry(prod_start, prod_end, prod_id, telem_start, telem_end, t
     i, j = np.nonzero((prod_midpoints[:, None] >= np_telem_start) & (prod_midpoints[:, None] <= np_telem_end))
 
     df_prod_telem = pd.DataFrame(
-        data={"prod_id": prod_id.values[i],
+        data={"hole_id": prod_id.values[i],
               "telem_id": telem_id.values[j]
         }
     # np.column_stack([prod_id.values[i], telem_id.values[j]]),

@@ -3,17 +3,9 @@
 
 all : doc/model_results.txt
 
-# Join hole-identified data sets (collar + PV drill), add rock class labels
-data/intermediate/1_labelled_holes.csv : data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv
-	python src/1_join_holes.py data/raw/190501001_COLLAR.csv data/raw/190506001_PVDrillProduction.csv data/raw/rock_class_mapping.csv data/intermediate/1_labelled_holes.csv
-
-# Label telemetry data
-data/intermediate/2_joined_data.csv : data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv
-	python src/2_join_telemetry_labels.py data/raw/190416001_MCMcshiftparam.csv data/raw/dbo.MCCONFMcparam_rawdata.csv data/intermediate/1_labelled_holes.csv data/intermediate/2_joined_data.csv
-
 # Split data into train and test sets
-data/intermediate/3-1_train.csv : data/intermediate/2_joined_data.csv
-	python src/3_train_test.py data/intermediate/2_joined_data.csv litho_rock_type 0.2 data/intermediate/3-1_train.csv data/intermediate/3-2_test.csv
+data/intermediate/train.csv : data/raw/*
+	python src/process_data.py # need to add parameters later (they are hardcoded in script for now)
 
 # EDA and sanity check report (1)
 # Use train data (telemetry and non-telemetry data)
