@@ -31,6 +31,35 @@ def save_model_results(results, output_path):
     with open(output_path, "w") as text_file:
         print(results, file=text_file)
         
+# For a given model, shows avg cross-validation score,
+# confusion matrix and classification report of evaluation
+# metrics including precision, recall, F1 score.
+# Usage: evaluate(clf, 'random forest', X, y, cv_folds=8)
+def evaluate(model, model_name, X, y, cv_folds):
+    predictions = model.predict(X)
+    print('Evaluating %s...' % model_name)
+    print('Trained on dataset of size {0} with {1} features\n'.format(X.shape, len(list(X))))
+    
+    # Calculate and print cross validation score
+    cv_scores = cross_val_score(model, X, y.values.ravel(), cv=cv_folds)
+    mean_cv_score = np.mean(cv_scores)
+    print("Cross-validation accuracy (%i-folds): %f\n" % (cv_folds, mean_cv_score))
+    
+    # Create confusion matrix
+    rock_labels = list(clf.classes_)
+    confus = confusion_matrix(y, predictions, labels=rock_labels)
+
+    # Print confusion matrix with headers
+    confus_ex = pd.DataFrame(confus, 
+                   index=['true:'+x for x in rock_labels], 
+                   columns=['pred:'+x for x in rock_labels])
+    print('CONFUSION MATRIX\n', confus_ex)
+    
+    # Classification report
+    report = classification_report(y, predictions, target_names=rock_labels)
+    print('\nCLASSIFICATION REPORT\n', report)
+    return 
+        
 #### MAIN 
 # First check if command line arguments are provided before launching main script
 if len(sys.argv) == 4: 
