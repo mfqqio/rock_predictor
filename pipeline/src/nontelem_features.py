@@ -11,19 +11,17 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 # Get non-telemetry features for each hole,
 # (e.g. total drill time, drill operator)
-def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, operator_col, redrill_col, hole_depth_col):
+def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, operator_col, hole_depth_col):
     # Group by hole IDs
     hole_grps = data.groupby(hole_id_col)
 
     # Rename columns to meaningful feature names
     feat_names = {drilltime_col: 'total_drill_time',
                   operator_col:'drill_operator',
-                  redrill_col: 'redrill_flag',
                   target_col: 'rock_class'} # Adds target labels
 
     # Calculate appropriate stat for each feature
     features = hole_grps.agg({drilltime_col: 'mean',
-                              redrill_col:'max',
                               operator_col: 'first',
                               target_col: 'first'}).rename(columns=feat_names)
 
@@ -38,8 +36,8 @@ def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, opera
     features['rock_class'] = features['rock_class'].astype(str)
 
     # Add penetration rate as a feature
-    depth_telem = data[['Hole Depth', hole_id_col, 'timestamp']] # Subset to hole depth data only
-    features = calc_penetration_rate(depth_telem, features, hole_id_col)
+    depth_telem = data[[hole_depth_col, hole_id_col, 'timestamp']] # Subset to hole depth data only
+    features = calc_penetration_rate(depth_telem, features, hole_id_col, hole_depth_col)
 
     return features
 
@@ -67,9 +65,9 @@ def encode_operator(op_col, df, features):
 
 # Calculates penetration rate for each hole (metres per hour)
 # and returns feature dataframe with this features included
-def calc_penetration_rate(depth_telem, feature_df, hole_id_col):
+def calc_penetration_rate(depth_telem, feature_df, hole_id_col, hole_depth_col):
     # Get min & max of hole depth in time series
-    df = depth_telem.groupby(hole_id_col).agg(['min', 'max'])['Hole Depth']
+    df = depth_telem.groupby(hole_id_col).agg(['min', 'max'])[hole_depth_col]
 
     # Calculate actual depth of hole drilled
     df['actual_hole_depth'] = df['max'] - df['min']

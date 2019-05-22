@@ -28,16 +28,15 @@ if len(sys.argv) == 3:
     
     # Column name mapping
     target_col='litho_rock_class'
-    hole_id_col='redrill_id'
+    hole_id_col='hole_id'
     drilltime_col='DrillTime'
     operator_col='FirstName'
-    redrill_col='redrill'
-    hole_depth_col='Hole Depth'
-    water_col = 'Water Flow'
-    pulldown_col = 'Pulldown Force'
+    hole_depth_col='depth'
+    water_col = 'water'
+    pulldown_col = 'pull'
     
-    telem_features = ["Horizontal Vibration", "Vertical Vibration", "Pulldown Force",
-    "Bailing Air Pressure", "Head Position", "Hole Depth", "Rotary Speed ", "Water Flow"]
+    telem_features = ["hvib", "vvib", "pull",
+    "air", "head", "depth", "rot", "water"]
     
     # Creates non-telemetry features
     features = create_nontelem_features(df,
@@ -45,7 +44,6 @@ if len(sys.argv) == 3:
                                         hole_id_col,
                                         drilltime_col,
                                         operator_col,
-                                        redrill_col,
                                         hole_depth_col)
     
     # Add proportion of time with zero water flow
