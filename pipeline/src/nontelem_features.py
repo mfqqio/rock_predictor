@@ -36,7 +36,7 @@ def create_nontelem_features(data, target_col, hole_id_col, drilltime_col, opera
     features['rock_class'] = features['rock_class'].astype(str)
 
     # Add penetration rate as a feature
-    depth_telem = data[[hole_depth_col, hole_id_col, 'timestamp']] # Subset to hole depth data only
+    depth_telem = data[[hole_depth_col, hole_id_col, 'utc_field_timestamp']] # Subset to hole depth data only
     features = calc_penetration_rate(depth_telem, features, hole_id_col, hole_depth_col)
 
     return features

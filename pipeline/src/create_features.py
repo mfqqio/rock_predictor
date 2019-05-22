@@ -36,7 +36,7 @@ if len(sys.argv) == 3:
     pulldown_col = 'pull'
     
     telem_features = ["hvib", "vvib", "pull",
-    "air", "head", "depth", "rot", "water"]
+    "air", "pos", "depth", "rot", "water"]
     
     # Creates non-telemetry features
     features = create_nontelem_features(df,
