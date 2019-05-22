@@ -17,6 +17,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
 
 # makefile command
 # python build_model.py non_telem_features.csv rock_class model_results.txt
@@ -39,6 +42,8 @@ def evaluate(model, model_name, X, y, cv_folds):
     predictions = model.predict(X)
     print('Evaluating %s...' % model_name)
     print('Trained on dataset of size {0} with {1} features\n'.format(X.shape, len(list(X))))
+    acc = round(accuracy_score(y, predictions), 4)
+    print('Model accuracy:', acc)
     
     # Calculate and print cross validation score
     cv_scores = cross_val_score(model, X, y.values.ravel(), cv=cv_folds)
@@ -46,7 +51,7 @@ def evaluate(model, model_name, X, y, cv_folds):
     print("Cross-validation accuracy (%i-folds): %f\n" % (cv_folds, mean_cv_score))
     
     # Create confusion matrix
-    rock_labels = list(clf.classes_)
+    rock_labels = list(model.classes_)
     confus = confusion_matrix(y, predictions, labels=rock_labels)
 
     # Print confusion matrix with headers
