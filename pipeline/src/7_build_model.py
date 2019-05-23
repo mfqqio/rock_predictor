@@ -33,22 +33,69 @@ def save_model(model, output_filename):
 def save_model_results(results, output_path):
     with open(output_path, "w") as text_file:
         print(results, file=text_file)
-        
+
+# Calculates and shows the differences in the amount of explosive
+# powder that would be loaded based on a given model's predictions.
+def calc_explosives_cost(file_path, predictions, X, y, outfile):
+    powd = pd.read_csv(file_path)
+    
+    # Add explosive powder amounts for target labels
+    y_true_powder = pd.merge(y, powd,
+                    how='left',
+                    left_on='rock_class',
+                    right_on='rock_class')
+
+    # Rename to signify these are powder amounts for true labels
+    y_true_powder.rename(columns={'kg/m3':'kgm3_true',
+                          'kg/t':'kgt_true',
+                          'rock_class':'true_rock_class'}, inplace=True)
+    
+    # Add explosive powder amounts for predicted labels
+    pred_df = pd.DataFrame({'pred_rock_class':predictions})
+
+    y_pred_powder = pd.merge(pred_df, powd,
+                        how='left',
+                        left_on='pred_rock_class',
+                        right_on='rock_class')
+
+    # Rename to signify these are powder amounts for predicted labels
+    y_pred_powder.rename(columns={'kg/m3':'kgm3_pred',
+                              'kg/t':'kgt_pred'}, inplace=True)
+    y_pred_powder.drop('rock_class', axis=1, inplace=True)
+    
+    # Combine target & predicted powder amounts together
+    powders = pd.concat([y_true_powder, y_pred_powder], axis=1)
+    
+    # Calculate powder differences for each prediction
+    powders['diff_m3'] =  powders['kgm3_true'] - powders['kgm3_pred']
+    powders['abs_diff_m3'] = abs(powders['diff_m3'])
+    
+    # Sum of absolute difference in explosive powder between actual and predicted rock classes
+    abs_diff = powders['abs_diff_m3'].sum()
+    outfile.write('\nTotal absolute powder difference between actual and predicted rock classes: {:.4f} kg/m3'.format(abs_diff))
+    under_blast = powders[powders['diff_m3'] > 0]['abs_diff_m3'].sum()
+    over_blast = powders[powders['diff_m3'] < 0]['abs_diff_m3'].sum()
+    
+    outfile.write('\nOver-blast powder total: {:.4f} kg/m3'.format(over_blast))
+    outfile.write('\nUnder-blast powder total: {:.4f} kg/m3'.format(under_blast))
+    return
+
 # For a given model, shows avg cross-validation score,
 # confusion matrix and classification report of evaluation
 # metrics including precision, recall, F1 score.
-# Usage: evaluate(clf, 'random forest', X, y, cv_folds=8)
-def evaluate(model, model_name, X, y, cv_folds):
+def evaluate(model, model_name, X, y, powder_path, outfile, cv_folds):
     predictions = model.predict(X)
-    print('Evaluating %s...' % model_name)
-    print('Trained on dataset of size {0} with {1} features\n'.format(X.shape, len(list(X))))
+    outfile.write('Evaluating {}...'.format(model_name))
+    outfile.write('\nTrained on dataset of size {0} with {1} features\n'.format(X.shape, len(list(X))))
     acc = round(accuracy_score(y, predictions), 4)
-    print('Model accuracy:', acc)
+    outfile.write('Train accuracy: {}'.format(acc))
+    
+    calc_explosives_cost(powder_path, predictions, X, y, outfile)
     
     # Calculate and print cross validation score
     cv_scores = cross_val_score(model, X, y.values.ravel(), cv=cv_folds)
     mean_cv_score = np.mean(cv_scores)
-    print("Cross-validation accuracy (%i-folds): %f\n" % (cv_folds, mean_cv_score))
+    outfile.write("\nCross-validation accuracy ({0}-folds): {1:.4f}\n".format(cv_folds, mean_cv_score))
     
     # Create confusion matrix
     rock_labels = list(model.classes_)
@@ -58,85 +105,47 @@ def evaluate(model, model_name, X, y, cv_folds):
     confus_ex = pd.DataFrame(confus, 
                    index=['true:'+x for x in rock_labels], 
                    columns=['pred:'+x for x in rock_labels])
-    print('CONFUSION MATRIX\n', confus_ex)
+    outfile.write('\nCONFUSION MATRIX\n {}'.format(confus_ex))
     
     # Classification report
     report = classification_report(y, predictions, target_names=rock_labels)
-    print('\nCLASSIFICATION REPORT\n', report)
+    outfile.write('\nCLASSIFICATION REPORT\n {}'.format(report))
+    print('Model results written out to file.')
     return 
+
         
 #### MAIN 
 # First check if command line arguments are provided before launching main script
-if len(sys.argv) == 4: 
+if len(sys.argv) == 5: 
     train_path = sys.argv[1]
-    target_col = sys.argv[2]
-    results_path = sys.argv[3]
-
+    powder_path = sys.argv[2]
+    target_col = sys.argv[3]
+    results_path = sys.argv[4]
+   
     # Read train dataset from files
     df = pd.read_csv(train_path, low_memory=False)
     print('Training data dimensions:', df.shape)
     
     # Filter out holes/rows which have no target label
     df = df[pd.notnull(df[target_col])]
-
-    # Filter out holes/rows where drilling time is less than 1 minute
-    df = df[df['total_drill_time'] > 60]
     
-    target_col = 'rock_class'
-
-    # With vibration
-    vib_cols = ['Horizontal Vibration',
-                 'Vertical Vibration']
-    
-    feature_cols = ['total_drill_time',
-                 'penetration_rate_mph']
-    
-    telem_cols = ['prop_nowater', 'prop_max_pulldown', 'prop_half_pulldown']
-    
-    # Exclude columns as features
+    # Exclude columns from features
     to_exclude = [target_col, 'hole_id']
                  
-    # Gets one-hot encoded drill operator column names and add to list of feature columns
-    drillop_cols = [col for col in list(df) if re.search(r'operator[0-9]+', col)] 
-    feature_cols = feature_cols + drillop_cols + telem_cols
-
     # Separate target and features
-    #X = df.loc[:, feature_cols] # Features columns
     X = df[df.columns.difference(to_exclude)]
     y = df[[target_col]].astype(str) # Target column
     
-    # Models to try
-    models = {
-        'random forest' : RandomForestClassifier(n_estimators=100),
-        'gradient boost': GradientBoostingClassifier(n_estimators=100, learning_rate=1.0,
-                                 max_depth=2, random_state=0),
-        'logistic regression': LogisticRegression(solver='lbfgs', 
-                                                  multi_class='multinomial',
-                                                  max_iter=2000) # For now, this uses L2 regularization
-    }
+    ###### PLACE MODEL(S) HERE
+    # Dummy random forest model to test evaluate function
+    clf = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+    clf.fit(X, y.values.ravel())
+    
+    # Saves model evaluation results to a text file
+    with open(results_path, "w") as outfile:
+        evaluate(clf, 'random forest', X, y, powder_path, outfile, cv_folds=8)
 
-    # Save results of models
-    results_dict = {
-                    'Classifier':[],
-                    'CV Accuracy':[]
-                   }
-    
-    # Assess each model with cross-validation
-    k_folds = 8
-    for model_name, model in models.items():
-        print("Fitting %s model..." % model_name)
-        cv_scores = cross_val_score(model, X, y.values.ravel(), cv=k_folds)
-        mean_cv_score = np.mean(cv_scores)
-        print("Cross-validation accuracy (%i-folds): %f\n" % (k_folds,mean_cv_score))
-        
-        results_dict['Classifier'].append(model_name)
-        results_dict['CV Accuracy'].append(mean_cv_score)
-    
-    # Save results in a table to save as text file
-    results_table = pd.DataFrame(results_dict)
-    save_model_results(results_table, results_path)
-    
-    #save_model(rf, 'random_forest_model.pkl')
+    #save_model(clf, 'random_forest_model.pkl')
     
     
     
