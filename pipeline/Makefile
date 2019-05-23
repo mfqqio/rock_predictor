@@ -19,8 +19,8 @@ data/intermediate/features.csv : data/intermediate/train.csv
 # EDA and sanity check report (2)
 
 # Build model
-doc/model_results.txt : data/intermediate/features.csv
-	python src/7_build_model.py data/intermediate/features.csv rock_class doc/model_results.txt
+doc/model_results.txt : data/intermediate/features.csv data/raw/explosive_by_rock_class.csv
+	python src/7_build_model.py data/intermediate/features.csv data/raw/explosive_by_rock_class.csv rock_class doc/model_results.txt
 
 # Clean up files
 clean :
