@@ -13,7 +13,7 @@ doc/eda_1.pdf : notebook/eda_1.ipynb
 	jupyter nbconvert --to pdf --execute notebook/eda_1.ipynb
 
 # Feature engineering
-data/intermediate/features.csv : data/intermediate/train.csv
+data/intermediate/features.csv : data/intermediate/train.csv src/create_features.py
 	python src/create_features.py data/intermediate/train.csv data/intermediate/features.csv
 
 # EDA and sanity check report (2)
