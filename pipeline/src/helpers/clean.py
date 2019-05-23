@@ -1,15 +1,31 @@
 import pandas as pd
 import numpy as np
-import random
+import random, glob, os
+
+def get_files(path, cols=None, dtype=None):
+    if cols is None:
+        usecols = None
+    else:
+        usecols = list(cols.keys())
+    if os.path.isdir(path):
+        print("Loading all files from:", path)
+        files = glob.glob(os.path.join(path, "*.csv"))
+        df = (pd.read_csv(f, usecols=usecols) for f in files)
+        df = pd.concat(df, ignore_index=True).drop_duplicates()
+        print("...concatenated shape:", df.shape)
+    else:
+        print("Loading this file:", path)
+        df = pd.read_csv(path, usecols=usecols)
+        print("...shape of file:", df.shape)
+    if cols is not None:
+        df.rename(columns=cols,inplace=True)
+    return df
 
 def remove_zero_rotation(rotations):
     return rotations > 0
 
 def remove_head_position(head_diffs, min_head_diff):
     return head_diffs > min_head_diff
-
-def create_hole_id(drill_pattern, hole):
-    return drill_pattern + '-' + hole
 
 # Converts UTC format to UNIX timestamp
 def convert_utc2unix(utc, timezone, unit="ns"):
@@ -61,7 +77,7 @@ def train_test_split(df, id_col, test_prop=0.2, stratify_by=None, seed=123):
             strat_holes = df[df[stratify_by]==s][id_col].unique()
             n_test = round(len(strat_holes) * test_prop)
             test_holes.extend(random.sample(list(strat_holes), n_test))
-
+            
     df_train = df[~df[id_col].isin(test_holes)]
     df_test = df[df[id_col].isin(test_holes)]
 
