@@ -13,14 +13,14 @@ doc/eda_1.pdf : notebook/eda_1.ipynb
 	jupyter nbconvert --to pdf --execute notebook/eda_1.ipynb
 
 # Feature engineering
-data/intermediate/features.csv : data/intermediate/train.csv
-	python src/create_features.py data/intermediate/train.csv data/intermediate/features.csv
+data/intermediate/features.csv : data/train.csv
+	python src/create_features.py data/train.csv data/features.csv
 
 # EDA and sanity check report (2)
 
 # Build model
-doc/model_results.txt : data/intermediate/features.csv data/raw/explosive_by_rock_class.csv
-	python src/7_build_model.py data/intermediate/features.csv data/raw/explosive_by_rock_class.csv rock_class doc/model_results.txt
+doc/model_results.txt : data/features.csv ../data/business/explosive_by_rock_class.csv
+	python src/7_build_model.py data/features.csv ../data/business/explosive_by_rock_class.csv rock_class doc/model_results.txt
 
 # Clean up files
 clean :
