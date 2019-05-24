@@ -4,7 +4,7 @@
 all : doc/model_results.txt
 
 # Split data into train and test sets
-data/train.csv : ../data/COLLAR/* ../data/PVDrillProduction/* ../data/MCMcshiftparam/*
+data/train.csv : ../data/COLLAR/* ../data/PVDrillProduction/* ../data/MCMcshiftparam/* src/process_data.py
 	python src/process_data.py # need to add parameters later (they are hardcoded in script for now)
 
 # EDA and sanity check report (1)
@@ -19,8 +19,8 @@ data/features.csv : data/train.csv src/create_features.py
 # EDA and sanity check report (2)
 
 # Build model
-doc/model_results.txt : data/features.csv
-	python src/7_build_model.py data/features.csv rock_class doc/model_results.txt
+doc/model_results.txt : data/features.csv ../data/business/explosive_by_rock_class.csv
+	python src/7_build_model.py data/features.csv ../data/business/explosive_by_rock_class.csv rock_class doc/model_results.txt
 
 # Clean up files
 clean :
