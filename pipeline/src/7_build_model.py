@@ -141,6 +141,7 @@ if len(sys.argv) == 5:
     
     # Filter out holes/rows which have no target label
     df = df[pd.notnull(df[target_col])]
+    df = df.dropna(subset = [target_col])
     
     # Exclude columns from features
     to_exclude = [target_col, 'hole_id']
