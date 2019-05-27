@@ -38,6 +38,21 @@ if len(sys.argv) == 3:
     telem_features = ["hvib", "vvib", "pull",
     "air", "pos", "depth", "rot", "water"]
     
+    # Manual Features - Gabriel
+    df["pos_lagOfLag"] = df.pos_lag1_diff.diff().fillna(0)
+    df.exp_rock_class.fillna(value="Unknown", inplace=True)
+
+    features_gabriel = df.groupby([hole_id_col, "exp_rock_type", "exp_rock_class", "litho_rock_type"]).agg({"pos_lagOfLag": "median",
+                                                    "pos_lag1_diff": "median",
+                                                    "depth": ["max", "min"],
+                                                    "utc_field_timestamp": "count",
+                                                    "ActualX": "mean",
+                                                    "ActualY": "mean"}).reset_index()
+    
+
+    features_gabriel.columns = ['_'.join(col).strip() for col in features_gabriel.columns.values]  
+    features_gabriel["normalized_penetration_rate"] = (features_gabriel["depth_max"] - features_gabriel["depth_min"]) / features_gabriel["utc_field_timestamp_count"]
+    
     # Creates non-telemetry features
     features = create_nontelem_features(df,
                                         target_col,
@@ -56,10 +71,12 @@ if len(sys.argv) == 3:
     features['prop_half_pulldown'] = prop_half_pulldown(df, hole_id_col, pulldown_col)
     #print(features.groupby('rock_class').agg(['mean'])['prop_half_pulldown'])
 
+#     import pdb; pdb.set_trace()
     # Add stat summary features
     features = pd.concat([features, get_std(df, telem_features)], axis=1)
     features = pd.concat([features, get_median(df, telem_features)], axis=1)
     features = pd.concat([features, get_mean(df, telem_features)], axis=1)
+    features = pd.concat([features, features_gabriel], axis=1)
     
     percentile_list = [0.1, 0.25, 0.75, 0.95]
     features = pd.concat([features, get_percentile(df, telem_features, percentile_list)], axis=1)

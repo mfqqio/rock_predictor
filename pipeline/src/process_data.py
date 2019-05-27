@@ -81,7 +81,9 @@ df_telem_headers = clean.get_files(input_telem_headers)
 df_labels['hole_id'] = df_labels['blast'] + "-" + df_labels['hole_name']
 df_labels['exp_rock_type'] = df_labels['exp_rock_type'].str.strip()
 df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
+df_labels.dropna(subset=["litho_rock_type"], inplace=True)
 df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
+import pdb; pdb.set_trace()
 df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
 
 # Cleaning df_production
