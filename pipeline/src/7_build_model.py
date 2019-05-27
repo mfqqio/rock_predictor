@@ -141,10 +141,10 @@ if len(sys.argv) == 5:
     
     # Filter out holes/rows which have no target label
     df = df[pd.notnull(df[target_col])]
-    df = df.dropna(subset = [target_col])
+    df = df.dropna() # For now, drop rows if there is any nan value present
     
     # Exclude columns from features
-    to_exclude = [target_col, 'hole_id']
+    to_exclude = [target_col, 'hole_id', 'hole_id_', 'exp_rock_class_', 'exp_rock_type_', 'litho_rock_type_']
                  
     # Separate target and features
     X = df[df.columns.difference(to_exclude)]
