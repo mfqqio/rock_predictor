@@ -20,6 +20,7 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
 
 # makefile command
 # python build_model.py non_telem_features.csv rock_class model_results.txt
@@ -72,7 +73,7 @@ def calc_explosives_cost(file_path, predictions, X, y, outfile):
     
     # Sum of absolute difference in explosive powder between actual and predicted rock classes
     abs_diff = powders['abs_diff_m3'].sum()
-    outfile.write('\nTotal absolute powder difference between actual and predicted rock classes: {:.4f} kg/m3'.format(abs_diff))
+    outfile.write('\n\nTotal absolute powder difference between actual and predicted rock classes: {:.4f} kg/m3'.format(abs_diff))
     under_blast = powders[powders['diff_m3'] > 0]['abs_diff_m3'].sum()
     over_blast = powders[powders['diff_m3'] < 0]['abs_diff_m3'].sum()
     
@@ -88,14 +89,26 @@ def evaluate(model, model_name, X, y, powder_path, outfile, cv_folds):
     outfile.write('Evaluating {}...'.format(model_name))
     outfile.write('\nTrained on dataset of size {0} with {1} features\n'.format(X.shape, len(list(X))))
     acc = round(accuracy_score(y, predictions), 4)
-    outfile.write('Train accuracy: {}'.format(acc))
+    outfile.write('\nTrain accuracy: {}\n'.format(acc))
+    
+    # Calculates and shows F1 scores
+    f1 = round(f1_score(y, predictions, average='macro'), 4)
+    all_f1 = f1_score(y, predictions, average=None)
+    outfile.write('\nAverage F1 Score: {}\n'.format(f1))
+       
+    all_f1 = f1_score(y, predictions, average=None)
+    f1_classes = zip(model.classes_, all_f1)
+    df_f1 = pd.DataFrame(list(f1_classes))
+    df_f1.rename(columns={0:'rock_class', 1:'F1_score'}, inplace=True)
+
+    outfile.write('\n'+df_f1.to_string())
     
     calc_explosives_cost(powder_path, predictions, X, y, outfile)
     
     # Calculate and print cross validation score
     cv_scores = cross_val_score(model, X, y.values.ravel(), cv=cv_folds)
     mean_cv_score = np.mean(cv_scores)
-    outfile.write("\nCross-validation accuracy ({0}-folds): {1:.4f}\n".format(cv_folds, mean_cv_score))
+    outfile.write("\n\nCross-validation accuracy ({0}-folds): {1:.4f}\n".format(cv_folds, mean_cv_score))
     
     # Create confusion matrix
     rock_labels = list(model.classes_)
