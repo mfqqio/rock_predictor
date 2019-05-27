@@ -98,6 +98,8 @@ df_prod_labels = df_prod_labels[df_prod_labels.collar_type != "DESIGN"] # We jus
 df_prod_labels = df_prod_labels[df_prod_labels.ActualDepth != 0] #Remove drills that did not actually drilled
 df_prod_labels = df_prod_labels[(df_prod_labels.unix_end - df_prod_labels.unix_start) > 60] #Remove drills that lasted less than a minute
 print('df_prod_labels dimensions after cleaning:', df_prod_labels.shape)
+df_prod_labels.dropna(inplace=True)
+print('df_prod_labels dimensions after dropna:', df_prod_labels.shape)
 
 # Cleaning df_telemetry and making wide
 df_telemetry["utc_field_timestamp"] = clean.convert_utc2unix(df_telemetry.FieldTimestamp, timezone="Canada/Eastern",unit="s")
