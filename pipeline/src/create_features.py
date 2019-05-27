@@ -42,7 +42,7 @@ if len(sys.argv) == 3:
     df["pos_lagOfLag"] = df.pos_lag1_diff.diff().fillna(0)
     df.exp_rock_class.fillna(value="Unknown", inplace=True)
 
-    features_gabriel = df.groupby([hole_id_col, "exp_rock_type", "exp_rock_class"]).agg({"pos_lagOfLag": "median",
+    features_gabriel = df.groupby([hole_id_col, "exp_rock_type", "exp_rock_class", "litho_rock_type"]).agg({"pos_lagOfLag": "median",
                                                     "pos_lag1_diff": "median",
                                                     "depth": ["max", "min"],
                                                     "utc_field_timestamp": "count",
