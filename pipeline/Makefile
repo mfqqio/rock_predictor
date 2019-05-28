@@ -20,7 +20,7 @@ data/features.csv : data/train.csv src/create_features.py
 
 # Build model
 doc/model_results.txt : data/features.csv ../data/business/explosive_by_rock_class.csv
-	python src/7_build_model.py data/features.csv ../data/business/explosive_by_rock_class.csv rock_class doc/model_results.txt
+	python src/build_model.py data/features.csv ../data/business/explosive_by_rock_class.csv rock_class doc/model_results.txt
 
 # Clean up files
 clean :
