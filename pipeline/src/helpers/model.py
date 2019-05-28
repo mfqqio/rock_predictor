@@ -102,16 +102,22 @@ def evaluate(model, model_name, X, y, powder_path, outfile, cv_folds):
 
 
 # Runs cross validation for a specified number of folds and outputs an array of 
-# predictions resulting from cross validation and prints out confusion matrix, report
+# predictions resulting from cross validation and probabilities for each class.
+# Also prints out confusion matrix, classification report.
 # Usage: run_cross_val_predict(clf, X, y, folds=5)
 def run_cross_val_predict(model, X, y, folds):        
-    y_pred = cross_val_predict(model, X, y.values.ravel(), cv=folds)
+    y_pred = cross_val_predict(model, X, y.values.ravel(), cv=folds, method='predict_proba')
     
-    f1 = round(f1_score(y, y_pred, average='macro'), 4)
+    # Format output and get most likely label
+    probs = pd.DataFrame(y_pred, columns=[x for x in model.classes_])
+    probs['y_pred'] = probs.idxmax(axis=1)
+    
+    # Print out eval metrics
+    f1 = round(f1_score(y, probs['y_pred'], average='macro'), 4)
     print('\nAverage F1 Score:', f1)
     
     rock_labels = list(model.classes_)
-    confus = confusion_matrix(y, y_pred, labels=rock_labels)
+    confus = confusion_matrix(y, probs['y_pred'], labels=rock_labels)
 
     # Print confusion matrix with headers
     confus_ex = pd.DataFrame(confus, 
@@ -120,7 +126,7 @@ def run_cross_val_predict(model, X, y, folds):
     print('\nCONFUSION MATRIX\n', confus_ex)
     
     # Classification report
-    report = classification_report(y, y_pred, target_names=rock_labels)
+    report = classification_report(y, probs['y_pred'], target_names=rock_labels)
     print('\nCLASSIFICATION REPORT\n', report)
     
-    return y_pred
+    return probs
