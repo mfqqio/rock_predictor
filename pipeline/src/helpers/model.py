@@ -98,3 +98,16 @@ def evaluate(model, model_name, X, y, powder_path, outfile, cv_folds):
     outfile.write('\nCLASSIFICATION REPORT\n {}'.format(report))
     print('Model results written out to file.')
     return
+
+def calc_overall_cost(y_pred, y_true, cost_dict):
+
+    if len(y_pred) != len(y_true):
+        raise ValueError("Predicted vector and true vector must have the same length (and order!)")
+
+    #Get predicted and actual costs
+    pred_cost = np.vectorize(cost_dict.get)(y_pred.values)
+    true_cost = np.vectorize(cost_dict.get)(y_pred.values)
+
+    diff_vector = np.abs(pred_cost - true_cost)
+
+    return diff_vector.sum()

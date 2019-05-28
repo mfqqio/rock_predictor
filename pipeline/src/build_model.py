@@ -52,9 +52,16 @@ if len(sys.argv) == 4:
     # Simple random forest model to test evaluate function
     clf = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
     clf.fit(X, y)
-
     # Saves model evaluation results to a text file
     with open(results_path, "w") as outfile:
         evaluate(clf, 'random forest', X, y, powder_path, outfile, cv_folds=8)
+
+    # Simple random forest model after grouping QZ & LIM
+    y_grouped = pd.Series(np.where(np.logical_or(y == "LIM", y == "QZ"), "LIMQZ", y), name="litho_rock_class")
+    clf2 = RandomForestClassifier(n_estimators=430, random_state=0)
+    clf2.fit(X, y_grouped)
+    results_path2 = "doc/qzlim_grouped_model_results.txt"
+    with open(results_path2, "w") as outfile:
+        evaluate(clf2, 'random forest grouping qz and lim', X, y_grouped, powder_path, outfile, cv_folds=8)
 
     #dump(clf, 'random_forest_model.pkl')
