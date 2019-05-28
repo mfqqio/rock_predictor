@@ -6,7 +6,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import f1_score
 from sklearn.model_selection import cross_val_predict
-fr
+
 # Calculates and shows the differences in the amount of explosive
 # powder that would be loaded based on a given model's predictions.
 def calc_explosives_cost(file_path, predictions, X, y, outfile):
