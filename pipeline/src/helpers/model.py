@@ -5,7 +5,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import f1_score
-
+from sklearn.model_selection import cross_val_predict
+fr
 # Calculates and shows the differences in the amount of explosive
 # powder that would be loaded based on a given model's predictions.
 def calc_explosives_cost(file_path, predictions, X, y, outfile):
@@ -98,3 +99,28 @@ def evaluate(model, model_name, X, y, powder_path, outfile, cv_folds):
     outfile.write('\nCLASSIFICATION REPORT\n {}'.format(report))
     print('Model results written out to file.')
     return
+
+
+# Runs cross validation for a specified number of folds and outputs an array of 
+# predictions resulting from cross validation and prints out confusion matrix, report
+# Usage: run_cross_val_predict(clf, X, y, folds=5)
+def run_cross_val_predict(model, X, y, folds):        
+    y_pred = cross_val_predict(model, X, y.values.ravel(), cv=folds)
+    
+    f1 = round(f1_score(y, y_pred, average='macro'), 4)
+    print('\nAverage F1 Score:', f1)
+    
+    rock_labels = list(model.classes_)
+    confus = confusion_matrix(y, y_pred, labels=rock_labels)
+
+    # Print confusion matrix with headers
+    confus_ex = pd.DataFrame(confus, 
+                   index=['true:'+x for x in rock_labels], 
+                   columns=['pred:'+x for x in rock_labels])
+    print('\nCONFUSION MATRIX\n', confus_ex)
+    
+    # Classification report
+    report = classification_report(y, y_pred, target_names=rock_labels)
+    print('\nCLASSIFICATION REPORT\n', report)
+    
+    return y_pred
