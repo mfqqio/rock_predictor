@@ -10,7 +10,7 @@ features from input data. Output is a dataframe of features for each hole.
 import pandas as pd
 import numpy as np
 import sys
-from telem_features import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half
+from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
