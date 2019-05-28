@@ -19,8 +19,8 @@ data/features.csv : data/train.csv src/create_features.py
 # EDA and sanity check report (2)
 
 # Build model
-doc/model_results.txt : data/features.csv ../data/business/explosive_by_rock_class.csv
-	python src/build_model.py data/features.csv ../data/business/explosive_by_rock_class.csv rock_class doc/model_results.txt
+doc/model_results.txt : data/features.csv ../data/business/explosive_by_rock_class.csv src/build_model.py src/helpers/model.py
+	python src/build_model.py data/features.csv ../data/business/explosive_by_rock_class.csv doc/model_results.txt
 
 # Clean up files
 clean :

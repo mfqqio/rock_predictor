@@ -43,7 +43,7 @@ if len(sys.argv) == 3:
     df.exp_rock_class.fillna(value="Unknown", inplace=True)
 
     # Creating major dataframe with summarizing metrics for every hole
-    features = (df.groupby([hole_id_col, "exp_rock_type", "exp_rock_class", "litho_rock_type", target_col])
+    features = (df.groupby(["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"])
     .agg({"pos_lagOfLag": "median",
         "pos_lag1_diff": "median",
         "depth": ["max", "min"],
@@ -67,12 +67,17 @@ if len(sys.argv) == 3:
         })
         .reset_index()
     )
-    features.columns = ['_'.join(col).strip() for col in features.columns.values]
+    features.columns = ['_'.join(col).strip() if col[1] != "" else col[0] for col in features.columns.values]
     features.rename(columns={"utc_field_timestamp_count": "time_count"},
                     inplace=True)
     features["penetration_rate"] = calc_penetration_rate(features.depth_max,
                                                          features.depth_min,
                                                          features.time_count)
+
+    #Add one hot encoding for Exploration Rock Type
+    features["exp_rock_type_onehot"] = features.exp_rock_type
+    features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
+
     # Output calculated features to file
     features.to_csv(output_file_path, index=False)
 
