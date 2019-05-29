@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import cross_val_predict
 import warnings
+from collections import Counter
 
 def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
     unique_values = np.unique(y_true)
@@ -38,3 +39,19 @@ def calc_overall_cost(y_true, y_pred, cost_dict):
     diff_vector = np.abs(pred_cost - true_cost)
 
     return diff_vector.sum()
+
+def cros_val_predict_oversample(estimator, X, y, oversampler, cv):
+    pred_list = []
+    for train_index, test_index in cv.split(X, y):
+        X_train = X.loc[train_index]
+        X_test = X.loc[test_index]
+        y_train = y.loc[train_index]
+        y_test = y.loc[test_index]
+        X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
+
+        #Train model in oversampled training set
+        estimator.fit(X_train_res, y_train_res)
+        pred_values = estimator.predict(X_test).tolist()
+        pred_list.extend(pred_values)
+
+    return np.array(pred_list)
