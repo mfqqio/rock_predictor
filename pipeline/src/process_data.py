@@ -11,14 +11,26 @@ import pandas as pd
 import numpy as np
 import argparse, sys
 
+
 if len(sys.argv)<7: # then running in dev mode (can remove in production)
-    input_labels = "../data/COLLAR"
+    data_root = sys.argv[1]
+    mode =  sys.argv[2] # Mode can be "for_train" or "for_predict"
+    print('Processing data %s...' % mode)
+    
+    # Read in main data sources
+    input_labels = data_root + "/COLLAR"
+    input_production = data_root + "/PVDrillProduction"
+    input_telemetry = data_root + "/MCMcshiftparam"
+    
+    # Read in tables used for mapping parameters
     input_class_mapping = "../data/business/rock_class_mapping.csv"
-    input_production = "../data/PVDrillProduction"
-    input_telemetry = "../data/MCMcshiftparam"
     input_telem_headers = "../data/mapping/dbo.MCCONFMcparam_rawdata.csv"
-    output_train = "data/train.csv"
-    output_test = "data/test.csv"
+    
+    # Define output files
+    output_train = "data/train.csv" # for_train
+    output_test = "data/test.csv" # for_train
+    output_predict = "data/predict_data.csv" # for_predict
+    
     max_diff = 0
     min_time = 60
     min_depth = 5
@@ -163,13 +175,20 @@ df_output = pd.merge(df_telemetry.reset_index(), df_join_lookup, how="inner", on
 df_output = pd.merge(df_output, df_prod_labels, how="left", on="hole_id")
 print("Final data shape: ", df_output.shape)
 
-df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=test_prop, stratify_by="litho_rock_type")
+# Split data into train/test if processing data for training.
+# and save to appropriately named output files.
+if mode == 'for_train':
+    df_train, df_test = clean.train_test_split(df_output, id_col="hole_id", test_prop=test_prop, stratify_by="litho_rock_type")
 
-print("Final train shape: ", df_train.shape)
-print("Final test shape: ", df_test.shape)
+    print("Final train shape: ", df_train.shape)
+    print("Final test shape: ", df_test.shape)
 
-print("Saving output files...")
-df_train.to_csv(output_train, index=True)
-df_test.to_csv(output_test, index=True)
+    print("Saving output files...")
+    df_train.to_csv(output_train, index=True)
+    df_test.to_csv(output_test, index=True)
+
+# Save everything to file if processing data for prediction.
+elif mode == 'for_predict':
+    df_output.to_csv(output_predict, index=True)
 
 print("Data cleaning complete!")
