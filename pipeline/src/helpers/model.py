@@ -5,6 +5,7 @@ from sklearn.model_selection import cross_val_predict
 import warnings
 from collections import Counter
 
+
 def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
     unique_values = np.unique(y_true)
     print("\n" + model_name + ":")
@@ -20,7 +21,7 @@ def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore')
         f1 = f1_score(y_true, y_pred, average="macro")
-        print(classification_report(y_true, y_pred, target_names=unique_values))
+        print(classification_report(y_true, y_pred, labels=unique_values))
     overall_cost = calc_overall_cost(y_true, y_pred, cost_dict)
     print("Sum of explosive misclassifications: %.3f kg/m3" % overall_cost)
 
@@ -55,3 +56,15 @@ def cros_val_predict_oversample(estimator, X, y, oversampler, cv):
         pred_list.extend(pred_values)
 
     return np.array(pred_list)
+
+def custom_oversample(X, y, class_list, num_samples, random_state=None):
+    index_vec = np.arange(stop=len(y))
+    for c in class_list:
+        resample_indeces = np.argwhere(y == c)
+        resample_indeces = np.random.choice(resample_indeces,
+                                            size=num_samples,
+                                            replace=True,
+                                            random_state=random_state)
+        index_vec = np.append(index_vec, resample_indeces)
+
+    return np.take(X, index_vec), np.take(y, index_vec)

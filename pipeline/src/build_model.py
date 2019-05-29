@@ -6,7 +6,7 @@ import numpy as np
 import re
 import sys
 import pickle
-from helpers.model import calc_overall_cost, evaluate_model, cros_val_predict_oversample
+from helpers.model import calc_overall_cost, evaluate_model, cros_val_predict_oversample, custom_oversample
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
@@ -16,6 +16,7 @@ from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from joblib import dump, load
 from time import time
 from imblearn.over_sampling import RandomOverSampler, SMOTE
+from imblearn import FunctionSampler
 
 # makefile command
 # python build_model.py non_telem_features.csv rock_class model_results.txt
@@ -44,6 +45,14 @@ kfold = StratifiedKFold(10, shuffle=True, random_state=123)
 # Load explosive density data
 df_exp = pd.read_csv(powder_path)
 cost_dict = dict(zip(df_exp.rock_class, df_exp["kg/m3"]))
+
+# Exploration model
+y_pred_m0 = df.exp_rock_class
+name_m0 = "Exploration model"
+acc_m0, f1_m0, time_m0, cost_m0 = evaluate_model(y,
+                                                 y_pred_m0,
+                                                 name_m0,
+                                                 0, cost_dict)
 
 # Simple random forest model to test evaluate function
 clf = RandomForestClassifier(n_estimators=430, random_state=0)
@@ -80,15 +89,51 @@ acc_m3, f1_m3, time_m3, cost_m3 = evaluate_model(y,
                                                  name_m3,
                                                  (toc-tic), cost_dict)
 
-# Smote oversampling on simple random forest
+# # SMOTE oversampling on simple random forest
+# ros = SMOTE(sampling_strategy='minority', random_state=123)
+# clf = RandomForestClassifier(n_estimators=430, random_state=0)
+# tic = time()
+# y_pred_m4 = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
+# toc = time()
+# name_m4 = "SMOTE oversampling on simple random forest"
+# acc_m4, f1_m4, time_m4, cost_m4 = evaluate_model(y,
+#                                                  y_pred_m4,
+#                                                  name_m4,
+#                                                  (toc-tic), cost_dict)
+#
+# # Custom oversampling with 25 extra random samples on QZ
+# ros = FunctionSampler(func=custom_oversample,
+#                       kw_args={"random_state": 123,
+#                                "class_list": ["QZ"],
+#                                "num_samples": 25})
+# clf = RandomForestClassifier(n_estimators=430, random_state=0)
+# tic = time()
+# y_pred_m4 = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
+# toc = time()
+# name_m5 = "Custom oversampling with 25 extra random samples on QZ"
+# acc_m5, f1_m5, time_m5, cost_m5 = evaluate_model(y,
+#                                                  y_pred_m5,
+#                                                  name_m5,
+#                                                  (toc-tic), cost_dict)
 
+# Simple random forest model after removing QZ
+y_no_qz = y.loc[y != "QZ"]
+X_no_qz = X.loc[y != "QZ"]
+clf = RandomForestClassifier(n_estimators=430, random_state=0)
+tic = time()
+y_pred_m6 = cross_val_predict(clf, X_no_qz, y_no_qz, cv=kfold)
+toc = time()
+name_m6 = "Basic model after removing QZ"
+acc_m6, f1_m6, time_m6, cost_m6 = evaluate_model(y_no_qz,
+                                                 y_pred_m6,
+                                                 name_m6,
+                                                 (toc-tic), cost_dict)
 
 df_summary = pd.DataFrame(data={
-    "Model Description": [name_m1, name_m2, name_m3],
-    "Accuracy": [acc_m1, acc_m2, acc_m3],
-    "Macro F1": [f1_m1, f1_m2, f1_m3],
-    "Evaluation Time": [time_m1, time_m2, time_m3],
-    "Absolute Explosive Diff": [cost_m1, cost_m2, cost_m3]
+    "Model Description": [name_m0, name_m1, name_m2, name_m3, name_m6],
+    "Accuracy": [acc_m0, acc_m1, acc_m2, acc_m3, acc_m6],
+    "Macro F1": [f1_m0, f1_m1, f1_m2, f1_m3, f1_m6],
+    "Evaluation Time": [time_m0, time_m1, time_m2, time_m3, time_m6],
+    "Absolute Explosive Diff": [cost_m0, cost_m1, cost_m2, cost_m3, cost_m6]
 })
-with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-    print(df_summary)
+df_summary.to_csv("doc/model_eval.csv")
