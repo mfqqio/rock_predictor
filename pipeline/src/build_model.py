@@ -6,7 +6,7 @@ import numpy as np
 import re
 import sys
 import pickle
-from helpers.model import calc_overall_cost, print_model_eval
+from helpers.model import calc_overall_cost, evaluate_model
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
@@ -50,7 +50,7 @@ tic = time()
 y_pred_m1 = cross_val_predict(clf, X, y, cv=kfold)
 toc = time()
 name_m1 = "Basic model"
-acc_m1, f1_m1, time_m1, cost_m1 = print_model_eval(y,
+acc_m1, f1_m1, time_m1, cost_m1 = evaluate_model(y,
                                                         y_pred_m1,
                                                         name_m1,
                                                         (toc-tic), cost_dict)
@@ -62,7 +62,7 @@ tic = time()
 y_pred_m2 = cross_val_predict(clf, X, y_grouped, cv=kfold)
 toc = time()
 name_m2 = "Basic model after grouping QZ & LIM"
-acc_m2, f1_m2, time_m2, cost_m2 = print_model_eval(y_grouped,
+acc_m2, f1_m2, time_m2, cost_m2 = evaluate_model(y_grouped,
                                                         y_pred_m2,
                                                         name_m2,
                                                         (toc-tic), cost_dict)

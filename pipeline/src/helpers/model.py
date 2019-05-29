@@ -4,7 +4,7 @@ from sklearn.metrics import classification_report, accuracy_score, f1_score, con
 from sklearn.model_selection import cross_val_predict
 import warnings
 
-def print_model_eval(y_true, y_pred, model_name, eval_time, cost_dict):
+def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
     unique_values = np.unique(y_true)
     print("\n" + model_name + ":")
     print("Evaluated in %.2f s" % eval_time)
