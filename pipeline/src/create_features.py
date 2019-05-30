@@ -15,9 +15,10 @@ from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop
 #### MAIN
 # First check if command line arguments are provided before launching main script
 # python src/create_features.py data/raw/sample_wide.csv data/intermediate/features.csv
-if len(sys.argv) == 3:
+if len(sys.argv) == 4:
     data_path = sys.argv[1]
     output_file_path = sys.argv[2]
+    mode = sys.argv[3] # Mode can be "for_train" or "for_predict"
 
     # Read master joined data from file
     print('Reading joined input data...')
@@ -41,12 +42,44 @@ if len(sys.argv) == 3:
 
     # For cases when exp_rock_type is "AIR" or "OB"
     df.exp_rock_class.fillna(value="Unknown", inplace=True)
+    
+    # Handle grouping for creating features for training (contains litho columns)
+    # and for predict (does not contain litho columns/are blank)
+    groupby_cols = []
+    if mode == 'for_train':
+        groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
+    elif mode == 'for_predict':
+        groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class"]
+        
 
     # Creating major dataframe with summarizing metrics for every hole
-    features = (df.groupby(["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"])
+    features = (df.groupby(groupby_cols)
     .agg({"pos_lagOfLag": "median",
         "pos_lag1_diff": "median",
-        "depth": ["max", "min"],
+        "depth": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "air": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "pos": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "rot": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
         "utc_field_timestamp": "count",
         "ActualX": "mean",
         "ActualY": "mean",

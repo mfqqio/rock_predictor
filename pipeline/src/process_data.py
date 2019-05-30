@@ -92,9 +92,12 @@ df_telem_headers = clean.get_files(input_telem_headers)
 # Cleaning df_labels (COLLAR)
 df_labels['hole_id'] = df_labels['blast'] + "-" + df_labels['hole_name']
 df_labels['exp_rock_type'] = df_labels['exp_rock_type'].str.strip()
-df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
-df_labels.dropna(subset=["litho_rock_type"], inplace=True)
-df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
+
+if mode == 'for_train': 
+    df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
+    df_labels.dropna(subset=["litho_rock_type"], inplace=True) # Only drop NA litho rock type rows if processing for training
+    df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
+    
 df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
 
 # Cleaning df_production
@@ -111,7 +114,10 @@ df_prod_labels = df_prod_labels[df_prod_labels.collar_type != "DESIGN"] # We jus
 df_prod_labels = df_prod_labels[df_prod_labels.ActualDepth != 0] #Remove drills that did not actually drilled
 df_prod_labels = df_prod_labels[(df_prod_labels.unix_end - df_prod_labels.unix_start) > 60] #Remove drills that lasted less than a minute
 print('df_prod_labels dimensions after cleaning:', df_prod_labels.shape)
-df_prod_labels.dropna(inplace=True)
+
+if mode == 'for_train': # Don't drop na rows when we process data for prediction
+    df_prod_labels.dropna(inplace=True)
+    
 print('df_prod_labels dimensions after dropna:', df_prod_labels.shape)
 
 # Cleaning df_telemetry and making wide

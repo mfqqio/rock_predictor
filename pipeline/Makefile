@@ -15,15 +15,18 @@ doc/eda_1.pdf : notebook/eda_1.ipynb
 
 # Feature engineering
 data/features.csv : data/train.csv src/create_features.py
-	python src/create_features.py data/train.csv data/features.csv
+	python src/create_features.py data/train.csv data/features.csv for_train
 
 # EDA and sanity check report (2)
 
 #### PREDICTION
 # Process input data for new predictions
-data/predict_data.csv: src/process_data.py ../data/predict
+data/predict_data.csv : src/process_data.py ../data/predict
 	python src/process_data.py ../data/predict for_predict
-	
+
+# Create features for new predictions
+data/predict_features.csv : src/create_features.py data/predict_data.csv
+	python src/create_features.py data/predict_data.csv data/predict_features.csv for_predict
 
 # Build model
 doc/model_results.txt : data/features.csv ../data/business/explosive_by_rock_class.csv src/build_model.py src/helpers/model.py
