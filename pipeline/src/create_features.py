@@ -10,7 +10,7 @@ features from input data. Output is a dataframe of features for each hole.
 import pandas as pd
 import numpy as np
 import sys
-from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half
+from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, count_oscillations
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
@@ -46,7 +46,6 @@ if len(sys.argv) == 3:
     features = (df.groupby(["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"])
     .agg({"pos_lagOfLag": "median",
         "pos_lag1_diff": "median",
-        "count_change_direction": "max",
         "depth": ["max", "min"],
         "utc_field_timestamp": "count",
         "ActualX": "mean",
@@ -56,15 +55,24 @@ if len(sys.argv) == 3:
                 ("25th_quant", lambda x: x.quantile(0.25)),
                 ("75th_quant", lambda x: x.quantile(0.75)),
                 ("90th_quant", lambda x: x.quantile(0.9)),
+                ("num_oscillations", count_oscillations),
                 ],
         "vvib": ["std", "max", "min", "sum", "median",
                 ("10th_quant", lambda x: x.quantile(0.1)),
                 ("25th_quant", lambda x: x.quantile(0.25)),
                 ("75th_quant", lambda x: x.quantile(0.75)),
                 ("90th_quant", lambda x: x.quantile(0.9)),
+                ("num_oscillations", count_oscillations),
                 ],
-        "water": [calc_prop_zero],
-        "pull": [calc_prop_max, calc_prop_half]
+        "water": ["std", "max", "min", "sum", "median",
+                  ("prop_zero", calc_prop_zero)],
+        "pull": [("prop_max", calc_prop_max),
+                 ("prop_half", calc_prop_half),
+                 ("num_oscillations",count_oscillations)],
+        "rot": ["std", "max", "min", "sum", "median",
+                ("num_oscillations", count_oscillations)],
+        "air": ["std", "max", "min", "sum", "median",
+                ("num_oscillations", count_oscillations)]
         })
         .reset_index()
     )

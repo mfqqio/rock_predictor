@@ -6,7 +6,7 @@ Inputs: 5 raw csv files: COLLAR, MCM (telemetry), PVDrill, MCCONFM, rock_class_m
 Outputs: 2 csv files: train, test
 """
 
-from helpers import clean # support functions live here
+from helpers import clean, feature_eng # support functions live here
 import pandas as pd
 import numpy as np
 import argparse, sys
@@ -128,9 +128,10 @@ df_telemetry["telem_id"] = df_telemetry.telem_id.cumsum()
 
 #Count the times the drill goes up and down
 df_telemetry["count_change_direction"] = (df_telemetry
-    .groupby("telem_id")["pos_lag1_diff"]
-    .transform(clean.count_change_sign))
+    .groupby("telem_id")["pos"]
+    .transform(feature_eng.count_oscillations))
 
+#Primary cleaning
 df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
 df_telemetry = df_telemetry[df_telemetry.rot > 0]
 print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)

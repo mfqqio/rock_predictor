@@ -30,6 +30,31 @@ def calc_prop_half(num_vector):
 def calc_penetration_rate(vec_max_depth, vec_min_depth, vec_count_time):
     vec_penetration_rate = (vec_max_depth - vec_min_depth) / vec_count_time
     return vec_penetration_rate.values
+
+def count_oscillations(num_vector):
+    #to avoid zeros
+    diff = num_vector.diff().fillna(0)
+    diff = diff.replace(0, method="ffill")
+
+    prev_diff = diff.shift(1).fillna(0)
+    prev_diff2 = diff.shift(2).fillna(0)
+    prev_diff3 = diff.shift(3).fillna(0)
+    post_diff = diff.shift(-1).fillna(0)
+    post_diff2 = diff.shift(-2).fillna(0)
+    post_diff3 = diff.shift(-3).fillna(0)
+
+    # Changes in signal result in diff_mult being negative
+    diff_mult = diff * prev_diff
+
+    # To keep only the ones in which the change progresses
+    diff_mult = diff_mult * (np.sign(prev_diff) != np.sign(diff))
+    diff_mult = diff_mult * (np.sign(prev_diff2) != np.sign(diff))
+    diff_mult = diff_mult * (np.sign(prev_diff3) != np.sign(diff))
+    diff_mult = diff_mult * (np.sign(post_diff) == np.sign(diff))
+    diff_mult = diff_mult * (np.sign(post_diff2) == np.sign(diff))
+    diff_mult = diff_mult * (np.sign(post_diff3) == np.sign(diff))
+
+    return diff_mult[diff_mult < 0].count()
 #
 # def zero_water_flow(telem, hole_id_col, colname):
 #     # Select only rows where water flow is 0
