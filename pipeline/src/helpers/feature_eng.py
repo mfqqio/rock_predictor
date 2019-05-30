@@ -29,9 +29,8 @@ def calc_prop_half(num_vector):
 
 def calc_penetration_rate(vec_max_depth, vec_min_depth, vec_count_time):
     vec_penetration_rate = (vec_max_depth - vec_min_depth) / vec_count_time
-
     return vec_penetration_rate.values
-# 
+#
 # def zero_water_flow(telem, hole_id_col, colname):
 #     # Select only rows where water flow is 0
 #     zero_water = telem[telem[colname] == 0]

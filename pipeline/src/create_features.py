@@ -46,6 +46,7 @@ if len(sys.argv) == 3:
     features = (df.groupby(["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"])
     .agg({"pos_lagOfLag": "median",
         "pos_lag1_diff": "median",
+        "count_change_direction": "max",
         "depth": ["max", "min"],
         "utc_field_timestamp": "count",
         "ActualX": "mean",

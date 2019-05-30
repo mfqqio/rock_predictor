@@ -118,9 +118,6 @@ df_telemetry = df_telemetry.rename(columns=cols)
 print('df_telemetry dimensions in wide format:', df_telemetry.shape)
 df_telemetry.dropna(inplace=True)
 df_telemetry["pos_lag1_diff"] = df_telemetry.pos.diff().fillna(0)
-df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
-df_telemetry = df_telemetry[df_telemetry.rot > 0]
-print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)
 
 # Identify signals purely on Hole Depth
 df_telemetry.sort_index(inplace=True)
@@ -128,6 +125,15 @@ df_telemetry["depth_diff"] = df_telemetry.depth.diff().fillna(0)
 df_telemetry["telem_id"] = df_telemetry.depth_diff < max_diff
 df_telemetry["telem_id"] = df_telemetry.telem_id * 1
 df_telemetry["telem_id"] = df_telemetry.telem_id.cumsum()
+
+#Count the times the drill goes up and down
+df_telemetry["count_change_direction"] = (df_telemetry
+    .groupby("telem_id")["pos_lag1_diff"]
+    .transform(clean.count_change_sign))
+
+df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
+df_telemetry = df_telemetry[df_telemetry.rot > 0]
+print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)
 print("Number of holes: ", df_telemetry.telem_id.nunique())
 
 # New df grouped by telemetry holes
