@@ -83,7 +83,10 @@ def predict(model, features_path):
     
     print('Done!')
     
-    return y_pred
+    # Attach features and useful information back to predictions
+    joined = pd.concat([feat, y_pred], sort=False, axis=1)
+    return joined
+
 
 if len(sys.argv) == 4:
     model_path = sys.argv[1]
@@ -94,4 +97,4 @@ if len(sys.argv) == 4:
     preds = predict(model, features_path)
     
     # Write out predictions df to file
-    preds.to_csv(output_file_path)
+    preds.to_csv(output_file_path) # need to check if this object is empty or not before writing to file 
