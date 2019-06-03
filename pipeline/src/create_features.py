@@ -10,7 +10,7 @@ features from input data. Output is a dataframe of features for each hole.
 import pandas as pd
 import numpy as np
 import sys
-from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half
+from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, class_distance
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
@@ -95,6 +95,42 @@ if len(sys.argv) == 4:
                 ("75th_quant", lambda x: x.quantile(0.75)),
                 ("90th_quant", lambda x: x.quantile(0.9)),
                 ],
+        "pull": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "air": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "pos": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "depth": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "rot": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "water": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
         "water": [calc_prop_zero],
         "pull": [calc_prop_max, calc_prop_half]
         })
@@ -110,6 +146,10 @@ if len(sys.argv) == 4:
     #Add one hot encoding for Exploration Rock Type
     features["exp_rock_type_onehot"] = features.exp_rock_type
     features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
+
+    # Add dist features
+    a = class_distance(features)
+    features = pd.concat([features, a], axis = 1)
 
     # Output calculated features to file
     features.to_csv(output_file_path, index=False)
