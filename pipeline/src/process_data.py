@@ -6,7 +6,7 @@ Inputs: 5 raw csv files: COLLAR, MCM (telemetry), PVDrill, MCCONFM, rock_class_m
 Outputs: 2 csv files: train, test
 """
 
-from helpers import clean # support functions live here
+from helpers import clean, feature_eng # support functions live here
 import pandas as pd
 import numpy as np
 import argparse, sys
@@ -136,9 +136,6 @@ df_telemetry = df_telemetry.rename(columns=cols)
 print('df_telemetry dimensions in wide format:', df_telemetry.shape)
 df_telemetry.dropna(inplace=True)
 df_telemetry["pos_lag1_diff"] = df_telemetry.pos.diff().fillna(0)
-df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
-df_telemetry = df_telemetry[df_telemetry.rot > 0]
-print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)
 
 # Identify signals purely on Hole Depth
 df_telemetry.sort_index(inplace=True)
@@ -146,6 +143,16 @@ df_telemetry["depth_diff"] = df_telemetry.depth.diff().fillna(0)
 df_telemetry["telem_id"] = df_telemetry.depth_diff < max_diff
 df_telemetry["telem_id"] = df_telemetry.telem_id * 1
 df_telemetry["telem_id"] = df_telemetry.telem_id.cumsum()
+
+#Count the times the drill goes up and down
+df_telemetry["count_change_direction"] = (df_telemetry
+    .groupby("telem_id")["pos"]
+    .transform(feature_eng.count_oscillations))
+
+#Primary cleaning
+df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
+df_telemetry = df_telemetry[df_telemetry.rot > 0]
+print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)
 print("Number of holes: ", df_telemetry.telem_id.nunique())
 
 # New df grouped by telemetry holes

@@ -5,7 +5,7 @@ all : doc/model_results.txt
 
 #### TRAINING
 # Split data into train and test sets
-data/train.csv : src/process_data.py ../data/train
+data/train.csv : ../data/train src/process_data.py src/helpers/clean.py
 	python src/process_data.py ../data/train for_train
 
 # EDA and sanity check report (1)
@@ -14,7 +14,7 @@ doc/eda_1.pdf : notebook/eda_1.ipynb
 	jupyter nbconvert --to pdf --execute notebook/eda_1.ipynb
 
 # Feature engineering
-data/features.csv : data/train.csv src/create_features.py
+data/features.csv : data/train.csv src/create_features.py src/helpers/feature_eng.py
 	python src/create_features.py data/train.csv data/features.csv for_train
 
 # EDA and sanity check report (2)
