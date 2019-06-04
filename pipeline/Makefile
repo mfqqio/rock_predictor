@@ -19,9 +19,9 @@ data/features.csv : data/train.csv src/create_features.py src/helpers/feature_en
 
 # EDA and sanity check report (2)
 
-# Build model
+# Evaluate models
 doc/eval_models.csv : data/features.csv ../data/business/explosive_by_rock_class.csv src/cv_models.py src/helpers/model.py
-	python src/cv_models.py data/features.csv ../data/business/explosive_by_rock_class.csv doc/eval_models.csv
+	python src/cv_models.py data/features.csv ../data/business/explosive_by_rock_class.csv doc/eval_models.csv > doc/eval_models.txt
 
 #### PREDICTION
 # Process input data for new predictions

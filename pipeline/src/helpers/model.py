@@ -59,14 +59,19 @@ def calc_overall_cost(y_true, y_pred, cost_dict):
     return diff_vector.sum()
 
 def cros_val_predict_oversample(estimator, X, y, oversampler, cv):
+    assert isinstance(X, pd.DataFrame)
+    columns = X.columns
     pred_array = np.ndarray(len(y), dtype=object)
+
     for train_index, test_index in cv.split(X, y):
         X_train = X.loc[train_index]
         X_test = X.loc[test_index]
         y_train = y.loc[train_index]
         y_test = y.loc[test_index]
-        X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
 
+        X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
+        X_train_res = pd.DataFrame(data=X_train_res, columns=columns)
+        
         #Train model in oversampled training set
         estimator.fit(X_train_res, y_train_res)
         pred_values = estimator.predict(X_test)

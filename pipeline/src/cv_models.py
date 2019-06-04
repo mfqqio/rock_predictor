@@ -35,7 +35,7 @@ print('Training data dimensions:\n', df.shape)
 assert df.litho_rock_class.isna().any() == False
 
 # Separate target and features
-X = df.drop(columns="litho_rock_class")
+X = df.select_dtypes(include=[np.number])
 y = df.litho_rock_class # Target column
 
 # K-fold strategy
@@ -61,107 +61,95 @@ appenders = evaluate_model(y, y_pred,"Exploration model", 0, cost_dict)
 # All pipelines
 models_path = os.path.join(os.getcwd(), "models/unfitted/*.joblib")
 
+# Regular models
 for f in glob.glob(models_path):
     pipe = load(f)
     tic = time()
     y_pred = cross_val_predict(pipe, X, y, cv=kfold)
     toc = time()
-    appenders = evaluate_model(y, y_pred, pipe.description, (toc-tic), cost_dict)
+    appenders = evaluate_model(y, y_pred,
+        pipe.description + " - Regular model", (toc-tic), cost_dict)
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
-import pdb; pdb.set_trace()
-
-
-# Simple random forest model after grouping QZ & LIM
+# Grouping QZ & LIM
 y_grouped = pd.Series(np.where(np.logical_or(y == "LIM", y == "QZ"), "LIM", y), name="litho_rock_class")
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cross_val_predict(clf, X, y_grouped, cv=kfold)
-toc = time()
-appenders = evaluate_model(y_grouped, y_pred,
-    "Basic model after grouping QZ & LIM", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cross_val_predict(pipe, X, y_grouped, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y_grouped, y_pred,
+        pipe.description + " - Grouping QZ & LIM", (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
 
-# Naive oversampled on simple random forest
+# Naive Oversampling models
 ros = RandomOverSampler(random_state=123)
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
-toc = time()
-appenders = evaluate_model(y, y_pred,
-    "Naive oversampled on simple random forest", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y, y_pred,
+        pipe.description + " - Naive Oversampling", (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
 
-# SMOTE oversampling on simple random forest
-ros = SMOTE(sampling_strategy='minority', random_state=123)
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
-toc = time()
-appenders = evaluate_model(y, y_pred, "SMOTE oversampling on simple random forest", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+# SMOTE Oversampling models
+ros = SMOTE(random_state=123)
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y, y_pred,
+        pipe.description + " - SMOTE Oversampling", (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 25 extra random samples on QZ
 ros = FunctionSampler(func=custom_oversample,
                       kw_args={"random_state": 123,
                                "class_list": ["QZ"],
                                "num_samples": 25})
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
-toc = time()
-appenders = evaluate_model(y, y_pred,
-    "Custom oversampling with 25 extra random samples on QZ", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y, y_pred,
+        pipe.description + " - Custom Oversampling - 25", (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 50 extra random samples on QZ
 ros = FunctionSampler(func=custom_oversample,
                       kw_args={"random_state": 123,
                                "class_list": ["QZ"],
                                "num_samples": 50})
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
-toc = time()
-appenders = evaluate_model(y, y_pred,
-    "Custom oversampling with 50 extra random samples on QZ", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y, y_pred,
+        pipe.description + " - Custom Oversampling - 50", (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 75 extra random samples on QZ
 ros = FunctionSampler(func=custom_oversample,
                       kw_args={"random_state": 123,
                                "class_list": ["QZ"],
                                "num_samples": 75})
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
-toc = time()
-appenders =  evaluate_model(y, y_pred,
-    "Custom oversampling with 75 extra random samples on QZ", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y, y_pred,
+        pipe.description + " - Custom Oversampling - 75", (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
 
-# Custom oversampling with 1 extra random samples on QZ
-ros = FunctionSampler(func=custom_oversample,
-                      kw_args={"random_state": 123,
-                               "class_list": ["QZ"],
-                               "num_samples": 1 })
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cros_val_predict_oversample(clf, X, y, ros, cv=kfold)
-toc = time()
-appenders =  evaluate_model(y, y_pred,
-    "Custom oversampling with 1 extra random samples on QZ", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Simple random forest model after removing QZ
-y_no_qz = y.loc[y != "QZ"]
-X_no_qz = X.loc[y != "QZ"]
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cross_val_predict(clf, X_no_qz, y_no_qz, cv=kfold)
-toc = time()
-appenders = evaluate_model(y_no_qz, y_pred,
-    "Basic model after removing QZ", (toc-tic), cost_dict)
+# y_no_qz = y.loc[y != "QZ"]
+# X_no_qz = X.loc[y != "QZ"]
 
 df_summary = pd.DataFrame(data={
     "Model Description": names,
