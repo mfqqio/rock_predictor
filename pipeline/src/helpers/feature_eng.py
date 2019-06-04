@@ -30,7 +30,7 @@ def calc_prop_half(num_vector):
 
 def calc_penetration_rate(vec_max_depth, vec_min_depth, vec_count_time):
     vec_penetration_rate = (vec_max_depth - vec_min_depth) / vec_count_time
-    return vec_penetration_rate.values
+    return vec_penetration_rate
 
 def count_oscillations(num_vector):
     #to avoid zeros
