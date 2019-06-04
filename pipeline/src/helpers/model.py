@@ -2,8 +2,25 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import cross_val_predict
+from sklearn.base import TransformerMixin, BaseEstimator
 import warnings
 from collections import Counter
+
+class ColumnSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, columns):
+        self.columns = columns
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        assert isinstance(X, pd.DataFrame)
+
+        try:
+            return X[self.columns]
+        except KeyError:
+            cols_error = list(set(self.columns) - set(X.columns))
+            raise KeyError("The DataFrame does not include the columns: %s" % cols_error)
 
 
 def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):

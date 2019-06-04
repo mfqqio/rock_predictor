@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import pandas as pd
 import numpy as np
 import re
 import sys
 import pickle
-from helpers.model import calc_overall_cost, evaluate_model, cros_val_predict_oversample, custom_oversample
+import glob
+from helpers.model import calc_overall_cost, evaluate_model, ColumnSelector, cros_val_predict_oversample, custom_oversample
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
@@ -29,14 +31,11 @@ results_path = sys.argv[3]
 df = pd.read_csv(train_path, low_memory=False)
 print('Training data dimensions:\n', df.shape)
 
-# Filter out holes/rows which have no target label
-df = df.dropna(subset = ["litho_rock_class"])
-
-# Exclude columns from features
-cols_to_exclude = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class", 'ActualX_mean', 'ActualY_mean']
+# Assert data integrity
+assert df.litho_rock_class.isna().any() == False
 
 # Separate target and features
-X = df.drop(columns=cols_to_exclude)
+X = df.drop(columns="litho_rock_class")
 y = df.litho_rock_class # Target column
 
 # K-fold strategy
@@ -59,13 +58,19 @@ y_pred = df.exp_rock_class
 appenders = evaluate_model(y, y_pred,"Exploration model", 0, cost_dict)
 [lst.append(x) for lst, x in zip(lists, appenders)]
 
-# Simple random forest model to test evaluate function
-clf = RandomForestClassifier(n_estimators=430, random_state=0)
-tic = time()
-y_pred = cross_val_predict(clf, X, y, cv=kfold)
-toc = time()
-appenders = evaluate_model(y, y_pred, "Basic model", (toc-tic), cost_dict)
-[lst.append(x) for lst, x in zip(lists, appenders)]
+# All pipelines
+models_path = os.path.join(os.getcwd(), "models/unfitted/*.joblib")
+
+for f in glob.glob(models_path):
+    pipe = load(f)
+    tic = time()
+    y_pred = cross_val_predict(pipe, X, y, cv=kfold)
+    toc = time()
+    appenders = evaluate_model(y, y_pred, pipe.description, (toc-tic), cost_dict)
+    [lst.append(x) for lst, x in zip(lists, appenders)]
+
+import pdb; pdb.set_trace()
+
 
 # Simple random forest model after grouping QZ & LIM
 y_grouped = pd.Series(np.where(np.logical_or(y == "LIM", y == "QZ"), "LIM", y), name="litho_rock_class")
