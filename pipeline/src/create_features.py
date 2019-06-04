@@ -10,11 +10,8 @@ features from input data. Output is a dataframe of features for each hole.
 import pandas as pd
 import numpy as np
 import sys
-<<<<<<< HEAD
-from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, count_oscillations
-=======
-from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, class_distance
->>>>>>> jp_dev-week5
+
+from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, count_oscillations, class_distance
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
@@ -46,7 +43,7 @@ if len(sys.argv) == 4:
 
     # For cases when exp_rock_type is "AIR" or "OB"
     df.exp_rock_class.fillna(value="Unknown", inplace=True)
-    
+
     # Handle grouping for creating features for training (contains litho columns)
     # and for predict (does not contain litho columns/are blank)
     groupby_cols = []
@@ -54,7 +51,7 @@ if len(sys.argv) == 4:
         groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
     elif mode == 'for_predict':
         groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class"]
-        
+
 
     # Creating major dataframe with summarizing metrics for every hole
     features = (df.groupby(groupby_cols)
