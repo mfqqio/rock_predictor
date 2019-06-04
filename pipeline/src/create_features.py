@@ -10,7 +10,7 @@ features from input data. Output is a dataframe of features for each hole.
 import pandas as pd
 import numpy as np
 import sys
-from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half
+from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, count_oscillations
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
@@ -88,15 +88,24 @@ if len(sys.argv) == 4:
                 ("25th_quant", lambda x: x.quantile(0.25)),
                 ("75th_quant", lambda x: x.quantile(0.75)),
                 ("90th_quant", lambda x: x.quantile(0.9)),
+                ("num_oscillations", count_oscillations),
                 ],
         "vvib": ["std", "max", "min", "sum", "median",
                 ("10th_quant", lambda x: x.quantile(0.1)),
                 ("25th_quant", lambda x: x.quantile(0.25)),
                 ("75th_quant", lambda x: x.quantile(0.75)),
                 ("90th_quant", lambda x: x.quantile(0.9)),
+                ("num_oscillations", count_oscillations),
                 ],
-        "water": [calc_prop_zero],
-        "pull": [calc_prop_max, calc_prop_half]
+        "water": ["std", "max", "min", "sum", "median",
+                  ("prop_zero", calc_prop_zero)],
+        "pull": [("prop_max", calc_prop_max),
+                 ("prop_half", calc_prop_half),
+                 ("num_oscillations",count_oscillations)],
+        "rot": ["std", "max", "min", "sum", "median",
+                ("num_oscillations", count_oscillations)],
+        "air": ["std", "max", "min", "sum", "median",
+                ("num_oscillations", count_oscillations)]
         })
         .reset_index()
     )

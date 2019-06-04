@@ -77,7 +77,7 @@ def train_test_split(df, id_col, test_prop=0.2, stratify_by=None, seed=123):
             strat_holes = df[df[stratify_by]==s][id_col].unique()
             n_test = round(len(strat_holes) * test_prop)
             test_holes.extend(random.sample(list(strat_holes), n_test))
-            
+
     df_train = df[~df[id_col].isin(test_holes)]
     df_test = df[df[id_col].isin(test_holes)]
 
