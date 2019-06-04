@@ -32,7 +32,6 @@ def calc_penetration_rate(vec_max_depth, vec_min_depth, vec_count_time):
     vec_penetration_rate = (vec_max_depth - vec_min_depth) / vec_count_time
     return vec_penetration_rate.values
 
-<<<<<<< HEAD
 def count_oscillations(num_vector):
     #to avoid zeros
     diff = num_vector.diff().fillna(0)
@@ -57,7 +56,7 @@ def count_oscillations(num_vector):
     diff_mult = diff_mult * (np.sign(post_diff3) == np.sign(diff))
 
     return diff_mult[diff_mult < 0].count()
-=======
+
 def class_distance(df):
     # Create dictionary to hold output.
     Dist_dict = {"AMP_dist":[], "IF_dist":[], "QZ_dist":[], "LIM_dist":[]}
@@ -83,7 +82,6 @@ def class_distance(df):
     pd_df = pd.DataFrame(Dist_dict)
     #new_df = pd.concat([df, pd_df], axis=1)
     return pd_df
->>>>>>> jp_dev-week5
 #
 # def zero_water_flow(telem, hole_id_col, colname):
 #     # Select only rows where water flow is 0
