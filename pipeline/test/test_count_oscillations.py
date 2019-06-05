@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(CURRENT_DIR))
 from src.helpers.feature_eng import count_oscillations
 
 # Dummy input DataFrame
-sample_vector = [2.5,4.4,0,0,6.3,9.2,0.0,0,0.4,3.1]
+sample_vector = pd.Series([1,2,3,4,5,4,3,2,1,3,4,5,6,7,8])
 # expected_bool = [False, False, True, True, False,False, True, True, False]
 # expected_prop = 0.5
 #print(sample_vector)
@@ -27,33 +27,8 @@ sample_vector = [2.5,4.4,0,0,6.3,9.2,0.0,0,0.4,3.1]
 
 
 # Test to check if the output matches expectations using sample vector
-# def test_calc_prop_zero_output():
-#     assert result == expected_prop, "Failed to achieve expected proportion"
-
-def count_oscillations(num_vector):
-    #to avoid zeros
-    diff = num_vector.diff().fillna(0)
-    diff = diff.replace(0, method="ffill")
-
-    prev_diff = diff.shift(1).fillna(0)
-    prev_diff2 = diff.shift(2).fillna(0)
-    prev_diff3 = diff.shift(3).fillna(0)
-    post_diff = diff.shift(-1).fillna(0)
-    post_diff2 = diff.shift(-2).fillna(0)
-    post_diff3 = diff.shift(-3).fillna(0)
-
-    # Changes in signal result in diff_mult being negative
-    diff_mult = diff * prev_diff
-
-    # To keep only the ones in which the change progresses
-    diff_mult = diff_mult * (np.sign(prev_diff) != np.sign(diff))
-    diff_mult = diff_mult * (np.sign(prev_diff2) != np.sign(diff))
-    diff_mult = diff_mult * (np.sign(prev_diff3) != np.sign(diff))
-    diff_mult = diff_mult * (np.sign(post_diff) == np.sign(diff))
-    diff_mult = diff_mult * (np.sign(post_diff2) == np.sign(diff))
-    diff_mult = diff_mult * (np.sign(post_diff3) == np.sign(diff))
-
-    return diff_mult[diff_mult < 0].count()
-
-count_oscillations(sample_vector)
-print(sample_vector)
+def test_calc_prop_zero_output():
+    sample_vector = pd.Series([1,2,3,4,5,4,3,2,1,3,4,5,6,7,8])
+    result = count_oscillations(sample_vector)
+    expected_prop = 2
+    assert result == expected_prop, "Failed to achieve expected proportion"
