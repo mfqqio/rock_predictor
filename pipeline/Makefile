@@ -5,8 +5,8 @@ all : models/fitted/final_model.joblib
 
 #### TRAINING
 # Split data into train and test sets
-data/train.csv : ../data/train src/process_data.py src/helpers/clean.py
-	python src/process_data.py ../data/train for_train
+data/train.csv : ../data src/process_data.py src/helpers/clean.py
+	python src/process_data.py ../data for_train
 
 # EDA and sanity check report (1)
 # Use train data (telemetry and non-telemetry data)

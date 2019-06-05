@@ -11,57 +11,44 @@ import pandas as pd
 import numpy as np
 import argparse, sys
 
+parser = argparse.ArgumentParser()
 
-if len(sys.argv)<7: # then running in dev mode (can remove in production)
-    data_root = sys.argv[1]
-    mode =  sys.argv[2] # Mode can be "for_train" or "for_predict"
-    print('Processing data %s...' % mode)
-    
-    # Read in main data sources
-    input_labels = data_root + "/COLLAR"
-    input_production = data_root + "/PVDrillProduction"
-    input_telemetry = data_root + "/MCMcshiftparam"
-    
-    # Read in tables used for mapping parameters
-    input_class_mapping = "../data/business/rock_class_mapping.csv"
-    input_telem_headers = "../data/mapping/dbo.MCCONFMcparam_rawdata.csv"
-    
-    # Define output files
-    output_train = "data/train.csv" # for_train
-    output_test = "data/test.csv" # for_train
-    output_predict = "data/predict_data.csv" # for_predict
-    
-    max_diff = 0
-    min_time = 60
-    min_depth = 5
-    test_prop = 0.2
+parser.add_argument("data_root")
+parser.add_argument("mode")
 
-else: # parse input parameters from terminal or makefile
-    parser = argparse.ArgumentParser()
-    parser.add_argument("input_labels")
-    parser.add_argument("input_class_mapping")
-    parser.add_argument("input_production")
-    parser.add_argument("input_telemetry")
-    parser.add_argument("input_telem_headers")
-    parser.add_argument("output_train")
-    parser.add_argument("output_test")
-    parser.add_argument("max_diff")
-    parser.add_argument("min_time")
-    parser.add_argument("min_depth")
-    parser.add_argument("test_prop")
-    args = parser.parse_args()
+parser.add_argument('--max_diff', default=0,
+    help='Maximum diff in hole depth that will be tolerated. More than this diff will be considered a new hole (default: 0)')
 
-    input_labels = args.input_labels
-    input_class_mapping = args.input_class_mapping
-    input_production = args.input_production
-    input_telemetry = args.input_telemetry
-    input_telem_headers = args.input_telem_headers
-    output_train = args.output_train
-    output_test = args.output_test
-    max_diff = args.max_diff
-    min_time = args.min_time
-    min_depth = args.min_depth
-    test_prop = args.test_prop
+parser.add_argument('--min_time', default=60, help='Minimum drilling time for a drill to be considered valid (default: 60)')
+
+parser.add_argument('--min_depth', default=5, help='Minimum drilling depth for a drill to be considered valid (default: 5)')
+
+parser.add_argument('--test_prop', default=0.2, help='Proportion of data that will be held for testing (default: 0.2)')
+
+args = parser.parse_args()
+
+mode = args.mode # Mode can be "for_train" or "for_predict"
+data_root = args.data_root
+max_diff = args.max_diff
+min_time = args.min_time
+min_depth = args.min_depth
+test_prop = args.test_prop
+
+print('Processing data %s...' % mode)
+
+# Read in main data sources
+input_labels = data_root + "/train/COLLAR"
+input_production = data_root + "/train/PVDrillProduction"
+input_telemetry = data_root + "/train/MCMcshiftparam"
+
+# Read in tables used for mapping parameters
+input_class_mapping = data_root + "/business/rock_class_mapping.csv"
+input_telem_headers = data_root + "/mapping/dbo.MCCONFMcparam_rawdata.csv"
+
+# Define output files
+output_train = "data/train.csv" # for_train
+output_test = "data/test.csv" # for_train
+output_predict = "data/predict_data.csv" # for_predict
 
 input_labels_cols = {
     'hole_id':'hole_id',
@@ -93,11 +80,11 @@ df_telem_headers = clean.get_files(input_telem_headers)
 df_labels['hole_id'] = df_labels['blast'] + "-" + df_labels['hole_name']
 df_labels['exp_rock_type'] = df_labels['exp_rock_type'].str.strip()
 
-if mode == 'for_train': 
+if mode == 'for_train':
     df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
     df_labels.dropna(subset=["litho_rock_type"], inplace=True) # Only drop NA litho rock type rows if processing for training
     df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
-    
+
 df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
 
 # Cleaning df_production
@@ -117,7 +104,7 @@ print('df_prod_labels dimensions after cleaning:', df_prod_labels.shape)
 
 if mode == 'for_train': # Don't drop na rows when we process data for prediction
     df_prod_labels.dropna(inplace=True)
-    
+
 print('df_prod_labels dimensions after dropna:', df_prod_labels.shape)
 
 # Cleaning df_telemetry and making wide
