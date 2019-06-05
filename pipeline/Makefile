@@ -1,7 +1,7 @@
 # Makefile to run pipeline for
 # Rock Type Prediction from Drill Telemetry Data (QIO3)
 
-all : doc/model_results.txt
+all : models/fitted/final_model.joblib
 
 #### TRAINING
 # Split data into train and test sets
@@ -35,6 +35,9 @@ data/predict_features.csv : src/create_features.py data/predict_data.csv
 # Make predictions using a saved model
 data/predictions.csv : src/predict.py models/dummy_model data/predict_features.py
 	python src/predict.py models/dummy_model data/predict_features.csv data/predictions.csv
+
+models/fitted/final_model.joblib : src/train_final_model.py
+	python src/train_final_model.py models/unfitted/rfc.joblib data/train.csv data/test.csv SMOTE
 
 # Clean up files
 clean :
