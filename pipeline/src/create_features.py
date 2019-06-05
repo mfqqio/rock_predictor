@@ -10,7 +10,8 @@ features from input data. Output is a dataframe of features for each hole.
 import pandas as pd
 import numpy as np
 import sys
-from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, count_oscillations
+
+from helpers.feature_eng import calc_penetration_rate, calc_prop_zero, calc_prop_max, calc_prop_half, count_oscillations, class_distance
 
 #### MAIN
 # First check if command line arguments are provided before launching main script
@@ -42,7 +43,7 @@ if len(sys.argv) == 4:
 
     # For cases when exp_rock_type is "AIR" or "OB"
     df.exp_rock_class.fillna(value="Unknown", inplace=True)
-    
+
     # Handle grouping for creating features for training (contains litho columns)
     # and for predict (does not contain litho columns/are blank)
     groupby_cols = []
@@ -50,7 +51,7 @@ if len(sys.argv) == 4:
         groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
     elif mode == 'for_predict':
         groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class"]
-        
+
 
     # Creating major dataframe with summarizing metrics for every hole
     features = (df.groupby(groupby_cols)
@@ -97,6 +98,7 @@ if len(sys.argv) == 4:
                 ("90th_quant", lambda x: x.quantile(0.9)),
                 ("num_oscillations", count_oscillations),
                 ],
+<<<<<<< HEAD
         "water": ["std", "max", "min", "sum", "median",
                   ("prop_zero", calc_prop_zero)],
         "pull": [("prop_max", calc_prop_max),
@@ -106,6 +108,46 @@ if len(sys.argv) == 4:
                 ("num_oscillations", count_oscillations)],
         "air": ["std", "max", "min", "sum", "median",
                 ("num_oscillations", count_oscillations)]
+=======
+        "pull": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "air": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "pos": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "depth": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "rot": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "water": ["std", "max", "min", "sum", "median",
+                ("10th_quant", lambda x: x.quantile(0.1)),
+                ("25th_quant", lambda x: x.quantile(0.25)),
+                ("75th_quant", lambda x: x.quantile(0.75)),
+                ("90th_quant", lambda x: x.quantile(0.9)),
+                ],
+        "water": [calc_prop_zero],
+        "pull": [calc_prop_max, calc_prop_half]
+>>>>>>> jp_dev-week5
         })
         .reset_index()
     )
@@ -119,6 +161,10 @@ if len(sys.argv) == 4:
     #Add one hot encoding for Exploration Rock Type
     features["exp_rock_type_onehot"] = features.exp_rock_type
     features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
+
+    # Add dist features
+    a = class_distance(features)
+    features = pd.concat([features, a], axis = 1)
 
     # Output calculated features to file
     features.to_csv(output_file_path, index=False)
