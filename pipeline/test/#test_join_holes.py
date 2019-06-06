@@ -23,25 +23,22 @@ from join_holes import label_rock_class, convert_utc2unix
 # Below are test stubs to be filled in
 
 def test_label_rock_class_out_df():
-    """ 
+    """
     Test that output is a dataframe object
     """
 
 def test_label_rock_class_out_labels():
-    """ 
+    """
     Test that dataframe output contains 2 new columns
     specifying rock class
     """
-    
+
 def test_convert_utc2unix_out():
-    """ 
+    """
     Test that output is a series object of numerics (timestamps)
     """
 
 def test_convert_utc2unix_out():
-    """ 
+    """
     Test that output is a series object
     """
-    
-    
-
