@@ -34,7 +34,7 @@ data/predict_features.csv : src/create_features.py data/predict_data.csv
 data/predictions.csv : src/predict.py models/dummy_model data/predict_features.py
 	python src/predict.py models/dummy_model data/predict_features.csv data/predictions.csv
 
-models/fitted/final_model.joblib : src/train_final_model.py
+models/fitted/final_model.joblib : src/train_final_model.py data/train_features.csv data/test_features.csv
 	python src/train_final_model.py models/unfitted/rfc.joblib data/train_features.csv data/test_features.csv SMOTE >> doc/final_eval.txt
 
 # Clean up files
