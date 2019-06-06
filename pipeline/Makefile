@@ -14,13 +14,11 @@ doc/eda_1.pdf : notebook/eda_1.ipynb
 	jupyter nbconvert --to pdf --execute notebook/eda_1.ipynb
 
 # Feature engineering
-data/features.csv : data/train.csv src/create_features.py src/helpers/feature_eng.py
-	python src/create_features.py data/train.csv data/features.csv for_train
-
-# EDA and sanity check report (2)
+data/train_features.csv : data/train.csv src/create_features.py src/helpers/feature_eng.py
+	python src/create_features.py for_train
 
 # Evaluate models
-doc/eval_models.csv : data/features.csv ../data/business/explosive_by_rock_class.csv src/cv_models.py src/helpers/model.py
+doc/eval_models.csv : data/train_features.csv../data/business/explosive_by_rock_class.csv src/cv_models.py src/helpers/model.py
 	python src/cv_models.py data/features.csv ../data/business/explosive_by_rock_class.csv doc/eval_models.csv > doc/eval_models.txt
 
 #### PREDICTION
