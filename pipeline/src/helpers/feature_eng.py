@@ -6,7 +6,7 @@ Creates features based on telemetry data for each hole.
 
 import pandas as pd
 import numpy as np
-from scipy.spatial import distance
+
 
 # Calculates proportion of time in time series
 # where water flow is zero. Returns a series of values.
@@ -61,31 +61,24 @@ def count_oscillations(num_vector):
 
     return diff_mult[diff_mult < 0].count()
 
-def class_distance(df):
-    # Create dictionary to hold output.
-    Dist_dict = {"AMP_dist":[], "IF_dist":[], "QZ_dist":[], "LIM_dist":[]}
+def class_distance(x, y, labels, label):
 
-    # name rock classes to iterate through.
-    rock_class = ['AMP', 'IF', 'QZ', 'LIM']
+    x = x.values.reshape(-1,1)
+    y = y.values.reshape(-1,1)
 
-    #df = df[pd.notnull(df[['rock_class', 'ActualX_mean', 'ActualY_mean']])]
+    X_matrix =  x - x.T
+    Y_matrix = y - y.T
+    np.fill_diagonal(X_matrix, np.inf)
+    np.fill_diagonal(Y_matrix, np.inf)
 
-    # grab each row to grab the closest distances of each rock type and return to dictionary.
-    for row in zip(df.ActualX_mean, df.ActualY_mean):
-        row = np.reshape(row,(1,2))
-        for r in rock_class:
-            a = df.loc[df['exp_rock_class'] == r, 'ActualX_mean':'ActualY_mean']
-            n = a.shape[0]
-            new_a = a.values.reshape(n,2)
-            d = distance.cdist(row, new_a, 'euclidean')[0]
-            m = min(x for x in d if x > 0)
-            r = r + str("_dist")
-            Dist_dict[r].append(m)
+    Dist_matrix = np.sqrt(X_matrix**2 + Y_matrix**2)
+    Dist_matrix = Dist_matrix[:,labels==label]
 
-    # Create dataframe of minimal distances
-    pd_df = pd.DataFrame(Dist_dict)
-    #new_df = pd.concat([df, pd_df], axis=1)
-    return pd_df
+    dist_min = Dist_matrix.min(axis=1)
+
+    return dist_min
+
+    
 #
 # def zero_water_flow(telem, hole_id_col, colname):
 #     # Select only rows where water flow is 0
