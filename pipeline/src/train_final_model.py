@@ -4,8 +4,9 @@ import numpy as np
 import re
 import sys
 import argparse
+from time import time
 
-from helpers.model import ColumnSelector, custom_oversample
+from helpers.model import ColumnSelector, custom_oversample, evaluate_model
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
@@ -26,6 +27,9 @@ train_path = args.train_path
 test_path = args.test_path
 oversampling = args.oversampling_strategy
 
+df_exp = pd.read_csv("../data/business/explosive_by_rock_class.csv")
+cost_dict = dict(zip(df_exp.rock_class, df_exp["kg/m3"]))
+
 
 pipe = load(pipeline_path)
 df_train = pd.read_csv(train_path)
@@ -45,6 +49,9 @@ if oversampling == "SMOTE":
     X_train_res = pd.DataFrame(data=X_train_res, columns=columns)
 
     #Calculate and export accuracy
+    tic = time()
     pipe.fit(X_train_res, y_train_res)
-    test_score = pipe.score(X_test, y_test)
+    y_pred = pipe.predict(X_test)
+    toc = time()
+    evaluate_model(y_test, y_pred, "Final model", (toc - tic), cost_dict)
     #export test_score
