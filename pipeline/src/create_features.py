@@ -129,9 +129,13 @@ for input_path, output_path in paths:
     features["exp_rock_type_onehot"] = features.exp_rock_type
     features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
 
-    # # Add dist features
-    # a = class_distance(features)
-    # features = pd.concat([features, a], axis = 1)
+    # Add dist features
+    unique_labels = df.exp_rock_class.unique()
+    for label in unique_labels:
+        features["dist_"+ label] = class_distance(features.ActualX_mean,
+                                                 features.ActualY_mean,
+                                                 features.exp_rock_class,
+                                                 label)
 
     # Output calculated features to file
     features.to_csv(output_path, index=False)
