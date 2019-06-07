@@ -13,7 +13,6 @@ import argparse, sys
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("data_root")
 parser.add_argument("mode")
 
 parser.add_argument('--max_diff', default=0,
@@ -28,7 +27,6 @@ parser.add_argument('--test_prop', default=0.2, help='Proportion of data that wi
 args = parser.parse_args()
 
 mode = args.mode # Mode can be "for_train" or "for_predict"
-data_root = args.data_root
 max_diff = args.max_diff
 min_time = args.min_time
 min_depth = args.min_depth
@@ -37,18 +35,18 @@ test_prop = args.test_prop
 print('Processing data %s...' % mode)
 
 # Read in main data sources
-input_labels = data_root + "/train/COLLAR"
-input_production = data_root + "/train/PVDrillProduction"
-input_telemetry = data_root + "/train/MCMcshiftparam"
+input_labels = "data/input_train/COLLAR"
+input_production = "data/input_train/PVDrillProduction"
+input_telemetry = "data/input_train/MCMcshiftparam"
 
 # Read in tables used for mapping parameters
-input_class_mapping = data_root + "/business/rock_class_mapping.csv"
-input_telem_headers = data_root + "/mapping/dbo.MCCONFMcparam_rawdata.csv"
+input_class_mapping = "data/input_mapping/rock_class_mapping.csv"
+input_telem_headers = "data/input_mapping/dbo.MCCONFMcparam_rawdata.csv"
 
 # Define output files
-output_train = "data/train.csv" # for_train
-output_test = "data/test.csv" # for_train
-output_predict = "data/predict_data.csv" # for_predict
+output_train = "data/pipeline/train.csv" # for_train
+output_test = "data/pipeline/test.csv" # for_train
+output_predict = "data/pipeline/predict_data.csv" # for_predict
 
 input_labels_cols = {
     'hole_id':'hole_id',

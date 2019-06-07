@@ -22,12 +22,12 @@ mode = args.mode
 
 if mode == "for_train":
     paths = [
-        ("data/train.csv", "data/train_features.csv"),
-        ("data/test.csv", "data/test_features.csv")
+        ("data/pipeline/train.csv", "data/pipeline/train_features.csv"),
+        ("data/pipeline/test.csv", "data/pipeline/test_features.csv")
     ]
 elif mode == "for_test":
     paths = [
-        ("data/to_predict.csv", "data/predict_features.csv")
+        ("data/pipeline/to_predict.csv", "data/pipeline/predict_features.csv")
     ]
 
 for input_path, output_path in paths:

@@ -27,7 +27,7 @@ train_path = args.train_path
 test_path = args.test_path
 oversampling = args.oversampling_strategy
 
-df_exp = pd.read_csv("../data/business/explosive_by_rock_class.csv")
+df_exp = pd.read_csv("data/input_mapping/explosive_by_rock_class.csv")
 cost_dict = dict(zip(df_exp.rock_class, df_exp["kg/m3"]))
 
 
