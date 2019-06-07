@@ -2,8 +2,25 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import cross_val_predict
+from sklearn.base import TransformerMixin, BaseEstimator
 import warnings
 from collections import Counter
+
+class ColumnSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, columns):
+        self.columns = columns
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        assert isinstance(X, pd.DataFrame)
+
+        try:
+            return X[self.columns]
+        except KeyError:
+            cols_error = list(set(self.columns) - set(X.columns))
+            raise KeyError("The DataFrame does not include the columns: %s" % cols_error)
 
 
 def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
@@ -42,14 +59,19 @@ def calc_overall_cost(y_true, y_pred, cost_dict):
     return diff_vector.sum()
 
 def cros_val_predict_oversample(estimator, X, y, oversampler, cv):
+    assert isinstance(X, pd.DataFrame)
+    columns = X.columns
     pred_array = np.ndarray(len(y), dtype=object)
+
     for train_index, test_index in cv.split(X, y):
         X_train = X.loc[train_index]
         X_test = X.loc[test_index]
         y_train = y.loc[train_index]
         y_test = y.loc[test_index]
-        X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
 
+        X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
+        X_train_res = pd.DataFrame(data=X_train_res, columns=columns)
+        
         #Train model in oversampled training set
         estimator.fit(X_train_res, y_train_res)
         pred_values = estimator.predict(X_test)
