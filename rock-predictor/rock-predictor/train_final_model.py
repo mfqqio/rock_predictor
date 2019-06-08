@@ -30,7 +30,6 @@ oversampling = args.oversampling_strategy
 df_exp = pd.read_csv("data/input_mapping/explosive_by_rock_class.csv")
 cost_dict = dict(zip(df_exp.rock_class, df_exp["kg/m3"]))
 
-
 pipe = load(pipeline_path)
 df_train = pd.read_csv(train_path)
 df_test = pd.read_csv(test_path)
@@ -54,4 +53,12 @@ if oversampling == "SMOTE":
     y_pred = pipe.predict(X_test)
     toc = time()
     evaluate_model(y_test, y_pred, "Final model", (toc - tic), cost_dict)
-    #export test_score
+
+    #Train model with entire dataset
+    df = pd.concat([df_train, df_test], ignore_index=True, sort=False)
+    X = df.select_dtypes(include=[np.number])
+    y = df.litho_rock_class
+    X_res, y_res = ros.fit_resample(X, y)
+    X_res = pd.DataFrame(data=X_res, columns=columns)
+    pipe.fit(X_res, y_res)
+    dump(pipe, "models/fitted/final_model.joblib")

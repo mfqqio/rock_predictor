@@ -34,7 +34,7 @@ data/output/predictions.csv : rock-predictor/predict.py models/dummy_model data/
 	python rock-predictor/predict.py models/dummy_model data/pipeline/predict_features.csv data/output/predictions.csv
 
 models/fitted/final_model.joblib : rock-predictor/train_final_model.py data/pipeline/train_features.csv data/pipeline/test_features.csv
-	python rock-predictor/train_final_model.py models/unfitted/rfc.joblib data/pipeline/train_features.csv data/pipeline/test_features.csv SMOTE >> doc/final_eval.txt
+	python rock-predictor/train_final_model.py models/unfitted/rfc.joblib data/pipeline/train_features.csv data/pipeline/test_features.csv SMOTE > doc/final_eval.txt
 
 # Clean up files
 clean :

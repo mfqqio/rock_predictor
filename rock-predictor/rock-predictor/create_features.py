@@ -32,10 +32,9 @@ elif mode == "for_test":
 
 for input_path, output_path in paths:
 
-    # Read master joined data from file
-    print('Reading joined input data...')
+    print('Reading clean input data...')
     df = pd.read_csv(input_path, low_memory=False)
-    print('Master joined input data dimensions:', df.shape)
+    print('Clean input data dimensions:', df.shape)
 
 
     #Create feature for second derivative of hole_depth progression
@@ -129,13 +128,13 @@ for input_path, output_path in paths:
     features["exp_rock_type_onehot"] = features.exp_rock_type
     features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
 
-    # Add dist features
-    unique_labels = df.exp_rock_class.unique()
-    for label in unique_labels:
-        features["dist_"+ label] = class_distance(features.ActualX_mean,
-                                                 features.ActualY_mean,
-                                                 features.exp_rock_class,
-                                                 label)
+    # # Add dist features
+    # unique_labels = df.exp_rock_class.unique()
+    # for label in unique_labels:
+    #     features["dist_"+ label] = class_distance(features.ActualX_mean,
+    #                                              features.ActualY_mean,
+    #                                              features.exp_rock_class,
+    #                                              label)
 
     # Output calculated features to file
     features.to_csv(output_path, index=False)
