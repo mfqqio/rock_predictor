@@ -25,9 +25,9 @@ if mode == "for_train":
         ("data/pipeline/train.csv", "data/pipeline/train_features.csv"),
         ("data/pipeline/test.csv", "data/pipeline/test_features.csv")
     ]
-elif mode == "for_test":
+elif mode == "for_predict":
     paths = [
-        ("data/pipeline/to_predict.csv", "data/pipeline/predict_features.csv")
+        ("data/pipeline/predict_data.csv", "data/pipeline/predict_features.csv")
     ]
 
 for input_path, output_path in paths:
