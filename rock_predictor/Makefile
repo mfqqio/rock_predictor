@@ -30,8 +30,9 @@ data/pipeline/predict_features.csv : rock_predictor/create_features.py data/inpu
 	python rock_predictor/create_features.py for_predict
 
 # Make predictions using a saved model
-data/output/predictions.csv : rock_predictor/predict.py models/dummy_model data/pipeline/predict_features.csv
-	python rock_predictor/predict.py models/dummy_model data/pipeline/predict_features.csv data/output/predictions.csv
+# Pass in train features together with test features for visualization
+data/output/predictions.csv : rock_predictor/predict.py models/dummy_model data/pipeline/test_features.csv data/pipeline/train_features.csv
+	python rock_predictor/predict.py models/dummy_model data/pipeline/test_features.csv data/pipeline/train_features.csv data/output/predictions.csv
 
 models/fitted/final_model.joblib : rock_predictor/train_final_model.py data/pipeline/train_features.csv data/pipeline/test_features.csv
 	python rock_predictor/train_final_model.py models/unfitted/rfc.joblib data/pipeline/train_features.csv data/pipeline/test_features.csv SMOTE > doc/final_eval.txt
