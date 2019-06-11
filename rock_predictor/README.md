@@ -12,6 +12,8 @@ The project's objective is to mitigate these costs by predicting the rock type a
 
 ## Installation Instructions
 
+*Note: The below instructions assumes you have Python 3 installed on your computer. If you need to install Python, you can refer to [Anaconda](https://www.anaconda.com/distribution/#macos), an easy-to-install distribution of Python.*
+
 First, obtain the code by cloning the repository. Open up the command line console and enter the following commands:
 
 ```
@@ -41,12 +43,17 @@ $ pip install -r requirements.txt
 
 ## Running the Pipeline
 
-The Rock Predictor pipeline uses the .csv files placed into the `input_train` and `input_mapping` folders as input and outputs a trained predictive model. To execute the entire pipeline, we run the Makefile:
+The Rock Predictor pipeline uses the .csv files placed into the `input_train` and `input_mapping` folders as input and outputs a trained predictive model. The steps of the pipeline are automated through a Makefile.
+
+You will need “GNU Make” installed on your computer to run Make. To see if you already have it installed, type `make -v` into your terminal (Linux/Mac) or `make --version` (Windows). The version will display if you have Make installed. If you need to install it, please see the “Software” section of this [reference](https://swcarpentry.github.io/make-novice/setup).
+
+To execute the **entire** pipeline, we can run all the targets in the Makefile:
 
 ```
 $ make all
 ```
-If you instead want to run a specific part of the Makefile, type into the command line the specific target/file you want to create - for example:
+
+If you instead want to run a specific step of the pipeline, you can run a part of the Makefile by typing a make command that identifies the specific target you want to create - for example:
 
 ```
 $ make data/pipeline/train.csv
