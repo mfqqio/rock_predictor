@@ -6,7 +6,7 @@ Rock Predictor is a Python package that leverages telemetry data collected from 
 This project was completed as a 2019 capstone project for the [UBC Master of Data Science](https://masterdatascience.ubc.ca/) program, in partnership with [Quebec Iron Ore](https://mineraiferquebec.com/?lang=en).
 
 ## Motivation
-During the production phase of mining iron ore, explosive blasts fragments rock surfaces so that rock material can be extracted. Blast designs optimized for the rock type are used to maximize the extraction of material. However, inaccurate knowledge about the expected rock type can lead to designs resulting in sub-optimal rock fragment size after blasting. This leads to additional costs and production delays in downstream production processes.
+During the production phase of mining iron ore, explosive blasts fragment rock surfaces so that rock material can be extracted. Blast designs optimized for the rock type are used to maximize the extraction of material. However, inaccurate knowledge about the expected rock type can lead to designs resulting in sub-optimal rock fragment size after blasting. This leads to additional costs and production delays in downstream production processes.
 
 The project's objective is to mitigate these costs by predicting the rock type as soon as possible after/while drilling blast holes. This allows for an opportunity to update blast designs before the explosive charges are loaded in the blast holes.
 
@@ -74,4 +74,4 @@ cd web_app
 python app.py
 ```
 
-To close down the app, hit CTRL+C in command line. If you also wish to exit the virtual environment, remember to deacdtivate.
+To close down the app, hit CTRL+C in command line. If you also wish to exit the virtual environment, remember to deactivate.
