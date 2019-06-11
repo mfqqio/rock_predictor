@@ -5,6 +5,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.base import TransformerMixin, BaseEstimator
 import warnings
 from collections import Counter
+import warnings
 
 class ColumnSelector(BaseEstimator, TransformerMixin):
     def __init__(self, columns):
@@ -15,7 +16,9 @@ class ColumnSelector(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         assert isinstance(X, pd.DataFrame)
-
+        extra_features =  list(set(X.columns) - set(self.columns))
+        if extra_features:
+            warnings.warn('Warning: There are more prediction features than the model was trained on! These new features will not be used for prediction. To use them, re-train model including new features.: %s' % extra_features)
         try:
             return X[self.columns]
         except KeyError:
@@ -71,7 +74,7 @@ def cros_val_predict_oversample(estimator, X, y, oversampler, cv):
 
         X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
         X_train_res = pd.DataFrame(data=X_train_res, columns=columns)
-        
+
         #Train model in oversampled training set
         estimator.fit(X_train_res, y_train_res)
         pred_values = estimator.predict(X_test)
