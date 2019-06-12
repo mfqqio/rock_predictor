@@ -18,7 +18,9 @@ args = parser.parse_args()
 
 final_model_path = args.final_model_path
 
-features_path = "data/pipeline/predict_features.csv"
+train_features_path = "data/pipeline/train_features.csv"
+test_features_path = "data/pipeline/test_features.csv"
+predict_features_path = "data/pipeline/predict_features.csv"
 output_file_path = "data/output/predictions.csv"
 
 X = pd.read_csv(features_path)
@@ -42,4 +44,10 @@ print('Done!')
 # Attach features and useful information back to predictions
 feat_pred = pd.concat([feat, y_pred], sort=False, axis=1)
 
-feat_pred.to_csv(output_file_path)
+# Combine together train features and predict/test features as
+# input for web app visualization
+train_feats = pd.read_csv(train_features_path)
+train_feats['data_type'] = 'train'
+feat_pred['data_type'] = 'predict'
+all_data = pd.concat([train_feats, feat_pred], axis=0, sort=False)
+all_data.to_csv(output_file_path)
