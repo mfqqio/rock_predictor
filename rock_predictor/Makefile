@@ -27,17 +27,17 @@ models/fitted/final_model.joblib : rock_predictor/train_final_model.py data/pipe
 
 #### PREDICTION
 # Process input data for new predictions
-data/pipeline/predict_data.csv : data/input_predict data/input_mapping rock_predictor/process_data.py
+data/pipeline/predict.csv : data/input_predict data/input_mapping rock_predictor/process_data.py
 	python rock_predictor/process_data.py for_predict
 
 # Create features for new predictions
-data/pipeline/predict_features.csv : rock_predictor/create_features.py data/input_predict data/pipeline/predict_data.csv
+data/pipeline/predict_features.csv : rock_predictor/create_features.py data/input_predict data/pipeline/predict.csv
 	python rock_predictor/create_features.py for_predict
 
 # Make predictions using a saved model
 # Pass in train features together with test features for visualization
-data/output/predictions.csv : rock_predictor/predict.py models/dummy_model data/pipeline/test_features.csv data/pipeline/train_features.csv
-	python rock_predictor/predict.py models/dummy_model data/pipeline/test_features.csv data/pipeline/train_features.csv data/output/predictions.csv
+data/output/predictions.csv : rock_predictor/predict.py models/dummy_model data/pipeline/predict_features.csv data/pipeline/train_features.csv
+	python rock_predictor/predict.py models/fitted/final_model.joblib
 
 # Clean up files
 clean :

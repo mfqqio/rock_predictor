@@ -23,9 +23,15 @@ test_features_path = "data/pipeline/test_features.csv"
 predict_features_path = "data/pipeline/predict_features.csv"
 output_file_path = "data/output/predictions.csv"
 
-X = pd.read_csv(features_path)
+print("Loading data...")
+pred_feats = pd.read_csv(predict_features_path)
+import pdb; pdb.set_trace()
+X = (pred_feats
+    .drop(columns=["ActualX_mean", "ActualY_mean"])
+    .select_dtypes(include=[np.number]))
+
 print('Loading model...')
-pipe = load(final_pipe_path)
+pipe = load(final_model_path)
 
 print('\nPredicting rock classes...')
 probs = pipe.predict_proba(X)
@@ -39,10 +45,10 @@ for est in pipe.named_steps.values():
 y_pred = pd.DataFrame(probs, columns=[x for x in model.classes_])
 y_pred['pred'] = y_pred.idxmax(axis=1)
 
-print('Done!')
+print('Done! Saving output for visualization tool...')
 
 # Attach features and useful information back to predictions
-feat_pred = pd.concat([feat, y_pred], sort=False, axis=1)
+feat_pred = pd.concat([pred_feats, y_pred], sort=False, axis=1)
 
 # Combine together train features and predict/test features as
 # input for web app visualization
