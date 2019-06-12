@@ -25,7 +25,6 @@ output_file_path = "data/output/predictions.csv"
 
 print("Loading data...")
 pred_feats = pd.read_csv(predict_features_path)
-import pdb; pdb.set_trace()
 X = (pred_feats
     .drop(columns=["ActualX_mean", "ActualY_mean"])
     .select_dtypes(include=[np.number]))
