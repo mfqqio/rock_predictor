@@ -52,6 +52,8 @@ feat_pred = pd.concat([pred_feats, y_pred], sort=False, axis=1)
 # Combine together train features and predict/test features as
 # input for web app visualization
 train_feats = pd.read_csv(train_features_path)
+test_feats = pd.read_csv(test_features_path)
+train_feats = pd.concat([train_feats, test_feats], axis=0, sort=False)
 train_feats['data_type'] = 'train'
 feat_pred['data_type'] = 'predict'
 all_data = pd.concat([train_feats, feat_pred], axis=0, sort=False)

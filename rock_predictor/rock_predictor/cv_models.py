@@ -157,4 +157,4 @@ df_summary = pd.DataFrame(data={
     "Evaluation Time": times,
     "Absolute Explosive Diff": costs})
 
-df_summary.to_csv("doc/model_eval.csv")
+df_summary.to_csv("doc/eval_models.csv")
