@@ -27,7 +27,7 @@ if mode == "for_train":
     ]
 elif mode == "for_predict":
     paths = [
-        ("data/pipeline/predict_data.csv", "data/pipeline/predict_features.csv")
+        ("data/pipeline/predict.csv", "data/pipeline/predict_features.csv")
     ]
 
 for input_path, output_path in paths:
@@ -127,14 +127,6 @@ for input_path, output_path in paths:
     #Add one hot encoding for Exploration Rock Type
     features["exp_rock_type_onehot"] = features.exp_rock_type
     features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
-
-    # Add dist features
-    unique_labels = features.exp_rock_class.unique()
-    for label in unique_labels:
-        features["dist_"+ label] = class_distance(features.ActualX_mean,
-                                                 features.ActualY_mean,
-                                                 features.exp_rock_class,
-                                                 label)
 
     # Output calculated features to file
     features.to_csv(output_path, index=False)

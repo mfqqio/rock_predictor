@@ -12,8 +12,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from joblib import dump, load
-from imblearn.over_sampling import RandomOverSampler, SMOTE
-from imblearn import FunctionSampler
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from imblearn.over_sampling import RandomOverSampler, SMOTE
+    from imblearn import FunctionSampler
 
 parser = argparse.ArgumentParser()
 parser.add_argument("pipeline_path")
@@ -32,7 +35,9 @@ cost_dict = dict(zip(df_exp.rock_class, df_exp["kg/m3"]))
 
 pipe = load(pipeline_path)
 df_train = pd.read_csv(train_path)
+df_train.drop(columns=["ActualX_mean", "ActualY_mean"], inplace=True)
 df_test = pd.read_csv(test_path)
+df_test.drop(columns=["ActualX_mean", "ActualY_mean"], inplace=True)
 
 if oversampling == "SMOTE":
     # Separate target and features

@@ -46,7 +46,7 @@ input_telem_headers = "data/input_mapping/dbo.MCCONFMcparam_rawdata.csv"
 # Define output files
 output_train = "data/pipeline/train.csv" # for_train
 output_test = "data/pipeline/test.csv" # for_train
-output_predict = "data/pipeline/predict_data.csv" # for_predict
+output_predict = "data/pipeline/predict.csv" # for_predict
 
 input_labels_cols = {
     'hole_id':'hole_id',
