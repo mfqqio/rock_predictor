@@ -26,12 +26,12 @@ data/pipeline/predict.csv : data/input_predict data/input_mapping rock_predictor
 	python rock_predictor/process_data.py for_predict
 
 # Create features for new predictions
-data/pipeline/predict_features.csv : rock_predictor/create_features.py data/input_predict data/pipeline/predict.csv
+data/pipeline/predict_features.csv : rock_predictor/create_features.py data/pipeline/predict.csv
 	python rock_predictor/create_features.py for_predict
 
 # Make predictions using a saved model
 # Pass in train features together with test features for visualization
-data/output/predictions.csv : rock_predictor/predict.py models/dummy_model data/pipeline/predict_features.csv data/pipeline/train_features.csv
+data/output/predictions.csv : rock_predictor/predict.py data/pipeline/predict_features.csv
 	python rock_predictor/predict.py models/fitted/final_model.joblib
 
 # Clean up files
