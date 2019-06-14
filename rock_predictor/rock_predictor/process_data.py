@@ -34,20 +34,31 @@ test_prop = args.test_prop
 
 print('Processing data %s...' % mode)
 
-# Read in main data sources
-input_labels = "data/input_train/COLLAR"
-input_production = "data/input_train/PVDrillProduction"
-input_telemetry = "data/input_train/MCMcshiftparam"
+input_labels = ""
+input_production = ""
+input_telemetry = ""
 
-# Read in tables used for mapping parameters
+# Read in main data sources
+if mode == 'for_train':
+    input_labels = "data/input_train/COLLAR"
+    input_production = "data/input_train/PVDrillProduction"
+    input_telemetry = "data/input_train/MCMcshiftparam"
+
+if mode == 'for_predict':
+    input_labels = "data/input_predict/COLLAR"
+    input_production = "data/input_predict/PVDrillProduction"
+    input_telemetry = "data/input_predict/MCMcshiftparam"
+
+# Read in tables used for mapping parameters (same for both train/predict)
 input_class_mapping = "data/input_mapping/rock_class_mapping.csv"
-input_telem_headers = "data/input_mapping/dbo.MCCONFMcparam_rawdata.csv"
+input_telem_headers = "data/input_mapping/dbo.MCCONFMcparam_rawdata.csv"    
 
 # Define output files
 output_train = "data/pipeline/train.csv" # for_train
 output_test = "data/pipeline/test.csv" # for_train
 output_predict = "data/pipeline/predict.csv" # for_predict
 
+# Specify required columns
 input_labels_cols = {
     'hole_id':'hole_id',
     'x':'x_collar',
@@ -68,11 +79,11 @@ input_telemetry_cols = {
 }
 
 # Read all raw files into dataframes
-df_labels = clean.get_files(input_labels, cols=input_labels_cols)
-df_class_mapping = clean.get_files(input_class_mapping)
-df_production = clean.get_files(input_production)
-df_telemetry = clean.get_files(input_telemetry, cols=input_telemetry_cols)
-df_telem_headers = clean.get_files(input_telem_headers)
+df_labels = clean.get_files(input_labels, mode, cols=input_labels_cols)
+df_class_mapping = clean.get_files(input_class_mapping, mode)
+df_production = clean.get_files(input_production, mode)
+df_telemetry = clean.get_files(input_telemetry, mode, cols=input_telemetry_cols)
+df_telem_headers = clean.get_files(input_telem_headers, mode)
 
 # Cleaning df_labels (COLLAR)
 df_labels['hole_id'] = df_labels['blast'] + "-" + df_labels['hole_name']
