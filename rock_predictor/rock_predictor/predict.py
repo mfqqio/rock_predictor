@@ -11,6 +11,7 @@ import sys
 from itertools import compress
 from joblib import load
 import argparse
+import warnings
 
 parser = argparse.ArgumentParser()
 parser.add_argument("final_model_path")
@@ -30,7 +31,11 @@ X = (pred_feats
     .select_dtypes(include=[np.number]))
 
 print('Loading model...')
-pipe = load(final_model_path)
+
+# Mute warning in terminal temporarily for demo
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=UserWarning)
+    pipe = load(final_model_path)
 
 print('\nPredicting rock classes...')
 probs = pipe.predict_proba(X)
