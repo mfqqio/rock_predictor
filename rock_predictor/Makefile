@@ -36,5 +36,5 @@ data/output/predictions.csv : rock_predictor/predict.py models/dummy_model data/
 
 # Clean up files
 clean :
-	rm -f data/pipeline/*
+	rm -rf data/pipeline/*
 	rm -f doc/*

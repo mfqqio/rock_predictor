@@ -72,7 +72,7 @@ for f in glob.glob(models_path):
     y_pred = cross_val_predict(pipe, X, y, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Regular model", (toc-tic), cost_dict)
+        pipe.description + " - Regular model", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Grouping QZ & LIM
@@ -83,7 +83,7 @@ for f in glob.glob(models_path):
     y_pred = cross_val_predict(pipe, X, y_grouped, cv=kfold)
     toc = time()
     appenders = evaluate_model(y_grouped, y_pred,
-        pipe.description + " - Grouping QZ & LIM", (toc-tic), cost_dict)
+        pipe.description + " - Grouping QZ & LIM", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Naive Oversampling models
@@ -94,7 +94,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Naive Oversampling", (toc-tic), cost_dict)
+        pipe.description + " - Naive Oversampling", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # SMOTE Oversampling models
@@ -105,7 +105,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - SMOTE Oversampling", (toc-tic), cost_dict)
+        pipe.description + " - SMOTE Oversampling", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 25 extra random samples on QZ
@@ -119,7 +119,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Custom Oversampling - 25", (toc-tic), cost_dict)
+        pipe.description + " - Custom Oversampling - 25", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 50 extra random samples on QZ
@@ -133,7 +133,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Custom Oversampling - 50", (toc-tic), cost_dict)
+        pipe.description + " - Custom Oversampling - 50", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 75 extra random samples on QZ
@@ -147,7 +147,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Custom Oversampling - 75", (toc-tic), cost_dict)
+        pipe.description + " - Custom Oversampling - 75", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 df_summary = pd.DataFrame(data={
