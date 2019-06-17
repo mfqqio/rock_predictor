@@ -62,8 +62,12 @@ frames = pd.DataFrame({'rock_class': ["LIM","QZ", "AMP","IF", "LIM","QZ", "AMP",
 
 
 # Test to check if the input to our function is a DataFrame
+
+
 def test_class_distance_input():
-    result_df = class_distance(frames)
+    unique_labels = frames.exp_rock_class.unique()
+    for label in unique_labels:
+        frames["dist_"+label] = class_distance(frames.ActualX_mean, frames.ActualY_mean, frames.exp_rock_class, label)
     assert isinstance(frames, pd.DataFrame), "Input is not DataFrame"
 
 

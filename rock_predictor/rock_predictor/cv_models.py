@@ -17,8 +17,11 @@ from sklearn.metrics import classification_report, accuracy_score, f1_score, con
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from joblib import dump, load
 from time import time
-from imblearn.over_sampling import RandomOverSampler, SMOTE
-from imblearn import FunctionSampler
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from imblearn.over_sampling import RandomOverSampler, SMOTE
+    from imblearn import FunctionSampler
 
 # makefile command
 # python build_model.py non_telem_features.csv rock_class model_results.txt
@@ -29,6 +32,7 @@ results_path = sys.argv[3]
 
 # Read train dataset from files
 df = pd.read_csv(train_path, low_memory=False)
+df.drop(columns=["ActualX_mean", "ActualY_mean"], inplace=True)
 print('Training data dimensions:\n', df.shape)
 
 # Assert data integrity
@@ -68,7 +72,7 @@ for f in glob.glob(models_path):
     y_pred = cross_val_predict(pipe, X, y, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Regular model", (toc-tic), cost_dict)
+        pipe.description + " - Regular model", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Grouping QZ & LIM
@@ -79,7 +83,7 @@ for f in glob.glob(models_path):
     y_pred = cross_val_predict(pipe, X, y_grouped, cv=kfold)
     toc = time()
     appenders = evaluate_model(y_grouped, y_pred,
-        pipe.description + " - Grouping QZ & LIM", (toc-tic), cost_dict)
+        pipe.description + " - Grouping QZ & LIM", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Naive Oversampling models
@@ -90,7 +94,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Naive Oversampling", (toc-tic), cost_dict)
+        pipe.description + " - Naive Oversampling", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # SMOTE Oversampling models
@@ -101,7 +105,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - SMOTE Oversampling", (toc-tic), cost_dict)
+        pipe.description + " - SMOTE Oversampling", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 25 extra random samples on QZ
@@ -115,7 +119,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Custom Oversampling - 25", (toc-tic), cost_dict)
+        pipe.description + " - Custom Oversampling - 25", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 50 extra random samples on QZ
@@ -129,7 +133,7 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Custom Oversampling - 50", (toc-tic), cost_dict)
+        pipe.description + " - Custom Oversampling - 50", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
 
 # Custom oversampling with 75 extra random samples on QZ
@@ -143,13 +147,8 @@ for f in glob.glob(models_path):
     y_pred = cros_val_predict_oversample(pipe, X, y, ros, cv=kfold)
     toc = time()
     appenders = evaluate_model(y, y_pred,
-        pipe.description + " - Custom Oversampling - 75", (toc-tic), cost_dict)
+        pipe.description + " - Custom Oversampling - 75", (toc-tic), cost_dict, export_dir="data/pipeline/cv_cross_val_pred")
     [lst.append(x) for lst, x in zip(lists, appenders)]
-
-
-# Simple random forest model after removing QZ
-# y_no_qz = y.loc[y != "QZ"]
-# X_no_qz = X.loc[y != "QZ"]
 
 df_summary = pd.DataFrame(data={
     "Model Description": names,
@@ -158,4 +157,4 @@ df_summary = pd.DataFrame(data={
     "Evaluation Time": times,
     "Absolute Explosive Diff": costs})
 
-df_summary.to_csv("doc/model_eval.csv")
+df_summary.to_csv("doc/eval_models.csv")

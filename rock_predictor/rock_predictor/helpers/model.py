@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
@@ -5,6 +6,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.base import TransformerMixin, BaseEstimator
 import warnings
 from collections import Counter
+import warnings
 
 class ColumnSelector(BaseEstimator, TransformerMixin):
     def __init__(self, columns):
@@ -15,15 +17,16 @@ class ColumnSelector(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         assert isinstance(X, pd.DataFrame)
-
+        extra_features =  list(set(X.columns) - set(self.columns))
+        if extra_features:
+            warnings.warn('Warning: There are more prediction features than the model was trained on! These new features will not be used for prediction. To use them, re-train model including new features.: %s' % extra_features)
         try:
             return X[self.columns]
         except KeyError:
             cols_error = list(set(self.columns) - set(X.columns))
             raise KeyError("The DataFrame does not include the columns: %s" % cols_error)
 
-
-def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
+def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict, export_dir=None):
     unique_values = np.unique(y_true)
     print("\n" + model_name.upper() + ":")
     print("Evaluated in %.2f s" % eval_time)
@@ -44,6 +47,9 @@ def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
 
     acc = accuracy_score(y_true, y_pred)
 
+    if export_dir:
+        path = os.path.join(export_dir, model_name + ".csv")
+        np.savetxt(path, y_pred, delimiter=",", fmt='%s')
 
     return model_name, acc, f1, eval_time, overall_cost
 
@@ -71,7 +77,7 @@ def cros_val_predict_oversample(estimator, X, y, oversampler, cv):
 
         X_train_res, y_train_res = oversampler.fit_resample(X_train, y_train)
         X_train_res = pd.DataFrame(data=X_train_res, columns=columns)
-        
+
         #Train model in oversampled training set
         estimator.fit(X_train_res, y_train_res)
         pred_values = estimator.predict(X_test)
