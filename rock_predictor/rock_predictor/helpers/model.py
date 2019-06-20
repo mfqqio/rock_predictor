@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
@@ -25,8 +26,7 @@ class ColumnSelector(BaseEstimator, TransformerMixin):
             cols_error = list(set(self.columns) - set(X.columns))
             raise KeyError("The DataFrame does not include the columns: %s" % cols_error)
 
-
-def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
+def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict, export_dir=None):
     unique_values = np.unique(y_true)
     print("\n" + model_name.upper() + ":")
     print("Evaluated in %.2f s" % eval_time)
@@ -47,6 +47,9 @@ def evaluate_model(y_true, y_pred, model_name, eval_time, cost_dict):
 
     acc = accuracy_score(y_true, y_pred)
 
+    if export_dir:
+        path = os.path.join(export_dir, model_name + ".csv")
+        np.savetxt(path, y_pred, delimiter=",", fmt='%s')
 
     return model_name, acc, f1, eval_time, overall_cost
 

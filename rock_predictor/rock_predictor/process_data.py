@@ -95,6 +95,7 @@ if mode == 'for_train':
     df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
 
 df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
+print("Clean chemical assay data dimensions:", df_labels.shape)
 
 # Cleaning df_production
 df_production['hole_id'] = df_production['DrillPattern'] + "-" + df_production['HoleID']
@@ -102,6 +103,7 @@ df_production = df_production.drop(columns=['DrillPattern', 'HoleID'])
 df_production['unix_start'] = clean.convert_utc2unix(df_production['UTCStartTime'], timezone="UTC")
 df_production['unix_end'] = clean.convert_utc2unix(df_production['UTCEndTime'], timezone="UTC")
 df_production = df_production.drop_duplicates(subset=["hole_id"], keep=False)
+print("Clean Provision data dimensions:", df_production.shape)
 
 # Join df_production with df_labels and more cleaning
 df_prod_labels = pd.merge(df_production, df_labels, how='left', left_on=['hole_id'], right_on = ['hole_id'])
@@ -109,12 +111,11 @@ print('Joined labels + production dimensions:', df_prod_labels.shape)
 df_prod_labels = df_prod_labels[df_prod_labels.collar_type != "DESIGN"] # We just want ACTUAL drills, not designed ones.
 df_prod_labels = df_prod_labels[df_prod_labels.ActualDepth != 0] #Remove drills that did not actually drilled
 df_prod_labels = df_prod_labels[(df_prod_labels.unix_end - df_prod_labels.unix_start) > 60] #Remove drills that lasted less than a minute
-print('df_prod_labels dimensions after cleaning:', df_prod_labels.shape)
 
 if mode == 'for_train': # Don't drop na rows when we process data for prediction
     df_prod_labels.dropna(inplace=True)
 
-print('df_prod_labels dimensions after dropna:', df_prod_labels.shape)
+print('Clean joined Provision and Assay dataset dimension:', df_prod_labels.shape)
 
 # Cleaning df_telemetry and making wide
 df_telemetry["utc_field_timestamp"] = clean.convert_utc2unix(df_telemetry.FieldTimestamp, timezone="Canada/Eastern",unit="s")
@@ -149,7 +150,7 @@ df_telemetry["count_change_direction"] = (df_telemetry
 df_telemetry = df_telemetry[df_telemetry.pos_lag1_diff > 0]
 df_telemetry = df_telemetry[df_telemetry.rot > 0]
 print('df_telemetry dimensions after initial cleaning:', df_telemetry.shape)
-print("Number of holes: ", df_telemetry.telem_id.nunique())
+print("Number of telemetry holes: ", df_telemetry.telem_id.nunique())
 
 # New df grouped by telemetry holes
 df_telem_holes = (df_telemetry
@@ -167,17 +168,30 @@ df_telem_holes.reset_index(inplace=True)
 df_telem_holes.dropna(inplace=True)
 df_telem_holes = df_telem_holes[df_telem_holes.drilling_time > min_time]
 df_telem_holes = df_telem_holes[df_telem_holes.drilling_depth > min_depth]
-print("Number of holes after cleaning: ", df_telem_holes.shape)
+print("Number of telemetry holes after cleaning: ", df_telem_holes.shape)
+
+# Match time frames (for report purposes)
+latest_start_time = max(df_telem_holes.drill_start.min(),
+    df_prod_labels.unix_start.min())
+earliest_end_time = min(df_telem_holes.drill_end.max(),
+    df_prod_labels.unix_end.max())
+df_telem_holes = df_telem_holes.query("drill_start > @latest_start_time")
+df_telem_holes = df_telem_holes.query("drill_end < @earliest_end_time")
+df_prod_labels = df_prod_labels.query("unix_start > @latest_start_time")
+df_prod_labels = df_prod_labels.query("unix_end < @earliest_end_time")
+print("Number of telemetry holes after time adjustment: ", df_telem_holes.shape)
+print("Number of Assay/Provision holes after time adjustment: ",
+    df_prod_labels.shape)
 
 # Match Provision and Telemetry data
 df_join_lookup = clean.join_prod_telemetry(df_prod_labels.unix_start,df_prod_labels.unix_end,df_prod_labels.hole_id,
                                            df_telem_holes.drill_start,df_telem_holes.drill_end,df_telem_holes.telem_id)
-print("Number of matches between Provision and Telemetry: ", df_join_lookup.shape)
+print("Number of joined holes from Assay, Provision and Telemetry: ", df_join_lookup.shape)
 
 # Clean joining anomalies
 double_joins_mask = clean.identify_double_joins(df_join_lookup.telem_id)
 df_join_lookup = df_join_lookup[double_joins_mask]
-print("Number of matches between Provision and Telemetry, after cleaning: ", df_join_lookup.shape)
+print("Number of joined holes from Assay, Provision and Telemetry, after cleaning: ", df_join_lookup.shape)
 
 # Join df_telemetry with df_join_lookup
 df_output = pd.merge(df_telemetry.reset_index(), df_join_lookup, how="inner", on="telem_id")
