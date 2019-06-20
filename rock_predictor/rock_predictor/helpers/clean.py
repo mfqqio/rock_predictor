@@ -49,10 +49,12 @@ def get_files(path, mode, cols=None, dtype=None):
 
         # Hardcoded special case for predict data files with missing headers
         if mode == 'for_predict' and 'input_predict/MCMcshiftparam' in path: # Handle telemetry predict data)
-            df = (pd.read_csv(f, header=None, names=telem_headers, usecols=usecols) for f in files)
+            #df = (pd.read_csv(f, header=None, names=telem_headers, usecols=usecols) for f in files)
+            df = (pd.read_csv(f, usecols=usecols) for f in files)
         
         elif mode == 'for_predict' and 'PVDrillProduction' in path: # Handle PVdrill predict data
-            df = (pd.read_csv(f, header=None, names=pvdrill_headers, usecols=usecols) for f in files)
+            #df = (pd.read_csv(f, header=None, names=pvdrill_headers, usecols=usecols) for f in files)
+            df = (pd.read_csv(f, encoding = "ISO-8859-1", usecols=usecols) for f in files)
 
         else:    
             df = (pd.read_csv(f, usecols=usecols) for f in files)
