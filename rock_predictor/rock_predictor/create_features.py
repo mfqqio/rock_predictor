@@ -49,8 +49,10 @@ for input_path, output_path in paths:
     if mode == 'for_train':
         groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
     elif mode == 'for_predict':
-        groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class"] 
+        groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class"]
         #groupby_cols = ["hole_id"] # Special case to handle new pred data missing exploration labels
+
+    groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
 
     # Creating major dataframe with summarizing metrics for every hole
     features = (df.groupby(groupby_cols)
@@ -131,18 +133,8 @@ for input_path, output_path in paths:
     features["exp_rock_type_onehot"] = features.exp_rock_type
     features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
 
-    #elif mode == 'for_predict': # No exploration labels provided so zero out required features
-    #    features["exp_rock_type_onehot"] = 'Unknown'
-    #    features['exp_rock_type_onehot_AMP'] = 0
-    #    features['exp_rock_type_onehot_QR'] = 0
-    #    features['exp_rock_type_onehot_LIMO'] = 0 
-    #    features['exp_rock_type_onehot_GN'] = 0
-    #    features['exp_rock_type_onehot_SIF'] = 0
-    #    features['exp_rock_type_onehot_IF'] = 0
+    #ADD SOLUTION FOR DIFFERENCES IN EXPLORATION LABELS FROM PREDICT AND TRAIN
 
-    if mode == 'for_predict':
-        features['exp_rock_type_onehot_AMP'] = 0
-        
     # Output calculated features to file
     features.to_csv(output_path, index=False)
 

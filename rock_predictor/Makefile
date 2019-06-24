@@ -5,7 +5,7 @@ predict : data/output/predictions.csv
 
 #### TRAINING
 # Split data into train and test sets
-data/pipeline/train.csv : data/input_train data/input_mapping rock_predictor/process_data.py rock_predictor/helpers/clean.py
+data/pipeline/train.csv : data/input_train/* data/input_mapping/* rock_predictor/process_data.py rock_predictor/helpers/clean.py
 	python rock_predictor/process_data.py for_train
 
 # Feature engineering
@@ -13,7 +13,7 @@ data/pipeline/train_features.csv : data/pipeline/train.csv rock_predictor/create
 	python rock_predictor/create_features.py for_train
 
 # Evaluate models
-doc/eval_models.txt : data/pipeline/train_features.csv data/input_mapping/explosive_by_rock_class.csv rock_predictor/cv_models.py rock_predictor/helpers/model.py models/unfitted
+doc/eval_models.txt : data/pipeline/train_features.csv data/input_mapping/explosive_by_rock_class.csv rock_predictor/cv_models.py rock_predictor/helpers/model.py models/unfitted/*
 	python -u rock_predictor/cv_models.py data/pipeline/train_features.csv data/input_mapping/explosive_by_rock_class.csv doc/eval_models.csv | tee doc/eval_models.txt
 
 # Train in the entire dataset
