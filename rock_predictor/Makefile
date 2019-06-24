@@ -1,7 +1,10 @@
 # Makefile to run pipeline for
 # Rock Type Prediction from Drill Telemetry Data (QIO3)
-train : models/fitted/final_model.joblib
+train : models/fitted/final_model.joblib doc/final_eval.txt
 predict : data/output/predictions.csv
+
+unfitted_model = models/unfitted/randomforest.joblib
+oversampling = SMOTE
 
 #### TRAINING
 # Split data into train and test sets
@@ -17,8 +20,8 @@ doc/eval_models.txt : data/pipeline/train_features.csv data/input_mapping/explos
 	python -u rock_predictor/cv_models.py data/pipeline/train_features.csv data/input_mapping/explosive_by_rock_class.csv doc/eval_models.csv | tee doc/eval_models.txt
 
 # Train in the entire dataset
-models/fitted/final_model.joblib : rock_predictor/train_final_model.py data/pipeline/train_features.csv data/pipeline/test_features.csv doc/eval_models.txt
-	python rock_predictor/train_final_model.py models/unfitted/rfc.joblib data/pipeline/train_features.csv data/pipeline/test_features.csv SMOTE > doc/final_eval.txt
+models/fitted/final_model.joblib doc/final_eval.txt: rock_predictor/train_final_model.py data/pipeline/train_features.csv data/pipeline/test_features.csv doc/eval_models.txt
+	python rock_predictor/train_final_model.py $(unfitted_model) data/pipeline/train_features.csv data/pipeline/test_features.csv $(oversampling) > doc/final_eval.txt
 
 #### PREDICTION
 # Process input data for new predictions
