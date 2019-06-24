@@ -19,7 +19,7 @@ with warnings.catch_warnings():
     from imblearn import FunctionSampler
 
 parser = argparse.ArgumentParser()
-parser.add_argument("pipeline_path")
+parser.add_argument("pipeline_path") # Location of selected model
 parser.add_argument("train_path")
 parser.add_argument("test_path")
 parser.add_argument("oversampling_strategy")
@@ -67,3 +67,4 @@ if oversampling == "SMOTE":
     X_res = pd.DataFrame(data=X_res, columns=columns)
     pipe.fit(X_res, y_res)
     dump(pipe, "models/fitted/final_model.joblib")
+    
