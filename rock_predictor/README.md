@@ -28,7 +28,7 @@ $ mkdir doc \
   data/input_train data/input_predict data/input_mapping data/output data/pipeline \
   data/input_train/COLLAR data/input_train/MCMcshiftparam data/input_train/PVDrillProduction \
   data/input_predict/COLLAR data/input_predict/MCMcshiftparam data/input_predict/PVDrillProduction \
-  models/fitted models/unfitted
+  models/fitted
 ```
 Add relevant .csv data files into the `input_x` folders we just created such that each file type is placed in its own folder as per the folder name.
 
@@ -47,21 +47,23 @@ The Rock Predictor pipeline uses the .csv files placed into the `input_train` an
 
 You will need “GNU Make” installed on your computer to run Make. To see if you already have it installed, type `make -v` into your terminal (Linux/Mac) or `make --version` (Windows). The version will display if you have Make installed. If you need to install it, please see the “Software” section of this [reference](https://swcarpentry.github.io/make-novice/setup).
 
-To execute the **entire** pipeline, we can run all the targets in the Makefile:
+To train the model and save it as a joblib file output to the `models/fitted` folder, run the training-specific target from the Makefile in the pipeline:
 
 ```
-$ make all
+$ make train
 ```
 
 If you instead want to run a specific step of the pipeline, you can run a part of the Makefile by typing a make command that identifies the specific target you want to create - for example:
 
 ```
-$ make data/pipeline/train.csv
+$ make data/pipeline/train.csv data/pipeline/test.csv
 ```
-Or:
+To get predictions from the fitted model based on input data placed in the `input_predict` folder, run the predict-specific target:
+
 ```
-$ make data/pipeline/train_features.csv
+$ make predict
 ```
+
 When you are done, exit the virtual environment:
 ```
 deactivate
