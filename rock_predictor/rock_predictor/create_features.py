@@ -41,18 +41,16 @@ for input_path, output_path in paths:
     df["pos_lagOfLag"] = df.pos_lag1_diff.diff().fillna(0)
 
     # For cases when exp_rock_type is "AIR" or "OB"
-    df.exp_rock_class.fillna(value="Unknown", inplace=True)
+    df.prior_explosive.fillna(value=-1, inplace=True)
 
     # Handle grouping for creating features for training (contains litho columns)
     # and for predict (does not contain litho columns/are blank)
     groupby_cols = []
     if mode == 'for_train':
-        groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
+        groupby_cols = ["hole_id", "prior_explosive", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
     elif mode == 'for_predict':
-        groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class"]
+        groupby_cols = ["hole_id", "prior_explosive", "exp_rock_type", "exp_rock_class"]
         #groupby_cols = ["hole_id"] # Special case to handle new pred data missing exploration labels
-
-    groupby_cols = ["hole_id", "exp_rock_type", "exp_rock_class", "litho_rock_type", "litho_rock_class"]
 
     # Creating major dataframe with summarizing metrics for every hole
     features = (df.groupby(groupby_cols)
@@ -126,14 +124,6 @@ for input_path, output_path in paths:
     features["penetration_rate"] = calc_penetration_rate(features.depth_max,
                                                          features.depth_min,
                                                          features.time_count)
-
-    #Add one hot encoding for Exploration Rock Type
-    # Plus added special case to handle new pred data missing exploration labels
-    #if mode == 'for_train':
-    features["exp_rock_type_onehot"] = features.exp_rock_type
-    features = pd.get_dummies(data=features, columns=["exp_rock_type_onehot"])
-
-    #ADD SOLUTION FOR DIFFERENCES IN EXPLORATION LABELS FROM PREDICT AND TRAIN
 
     # Output calculated features to file
     features.to_csv(output_path, index=False)
