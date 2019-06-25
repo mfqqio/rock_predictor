@@ -52,6 +52,7 @@ if mode == 'for_predict':
 # Read in tables used for mapping parameters (same for both train/predict)
 input_class_mapping = "data/input_mapping/rock_class_mapping.csv"
 input_telem_headers = "data/input_mapping/dbo.MCCONFMcparam_rawdata.csv"
+input_explosive_mapping = "data/input_mapping/explosive_by_rock_class.csv"
 
 # Define output files
 output_train = "data/pipeline/train.csv" # for_train
@@ -81,6 +82,7 @@ input_telemetry_cols = {
 # Read all raw files into dataframes
 df_labels = clean.get_files(input_labels, mode, cols=input_labels_cols)
 df_class_mapping = clean.get_files(input_class_mapping, mode)
+df_explosive_mapping = clean.get_files(input_explosive_mapping, mode)
 df_production = clean.get_files(input_production, mode)
 df_telemetry = clean.get_files(input_telemetry, mode, cols=input_telemetry_cols)
 df_telem_headers = clean.get_files(input_telem_headers, mode)
@@ -111,6 +113,11 @@ print('Joined labels + production dimensions:', df_prod_labels.shape)
 df_prod_labels = df_prod_labels[df_prod_labels.collar_type != "DESIGN"] # We just want ACTUAL drills, not designed ones.
 df_prod_labels = df_prod_labels[df_prod_labels.ActualDepth != 0] #Remove drills that did not actually drilled
 df_prod_labels = df_prod_labels[(df_prod_labels.unix_end - df_prod_labels.unix_start) > 60] #Remove drills that lasted less than a minute
+
+# Join in df_explosive_mapping
+df_prod_labels = pd.merge(df_prod_labels, df_explosive_mapping, how='left', left_on=['exp_rock_class'], right_on=['rock_class'])
+df_prod_labels["prior_explosive"] = df_prod_labels["kg/m3"]
+df_prod_labels = df_prod_labels.drop(columns=["kg/m3","kg/t"])
 
 if mode == 'for_train': # Don't drop na rows when we process data for prediction
     df_prod_labels.dropna(inplace=True)
