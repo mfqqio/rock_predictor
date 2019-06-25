@@ -40,18 +40,18 @@ input_telemetry = ""
 
 # Read in main data sources
 if mode == 'for_train':
-    input_labels = "data/input_train/COLLAR"
-    input_production = "data/input_train/PVDrillProduction"
-    input_telemetry = "data/input_train/MCMcshiftparam"
+    input_labels = "data/input_train/labels"
+    input_production = "data/input_train/production"
+    input_telemetry = "data/input_train/telemetry"
 
 if mode == 'for_predict':
-    input_labels = "data/input_predict/COLLAR"
-    input_production = "data/input_predict/PVDrillProduction"
-    input_telemetry = "data/input_predict/MCMcshiftparam"
+    input_labels = "data/input_predict/labels"
+    input_production = "data/input_predict/production"
+    input_telemetry = "data/input_predict/telemetry"
 
 # Read in tables used for mapping parameters (same for both train/predict)
 input_class_mapping = "data/input_mapping/rock_class_mapping.csv"
-input_telem_headers = "data/input_mapping/dbo.MCCONFMcparam_rawdata.csv"
+input_telem_headers = "data/input_mapping/telemetry_mapping.csv"
 input_explosive_mapping = "data/input_mapping/explosive_by_rock_class.csv"
 
 # Define output files
