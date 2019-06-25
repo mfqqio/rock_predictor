@@ -24,16 +24,15 @@ The project's objective is to mitigate these costs by predicting the rock type a
 First, obtain the code by cloning the repository. Open up the command line console and enter the following commands:
 
 ```
-$ git clone https://github.com/carrieklc/test-repo3
-$ cd test-repo3
+$ git clone https://github.com/mfqqio/rock_predictor.git
+$ cd rock_predictor
 ```
 
 Next, create the directories where input data will be located and intermediary outputs from the pipeline will be saved.
 ```
-$ mkdir data \
-  data/input_train data/input_predict data/input_mapping data/output data/pipeline \
-  data/input_train/COLLAR data/input_train/MCMcshiftparam data/input_train/PVDrillProduction \
-  data/input_predict/COLLAR data/input_predict/MCMcshiftparam data/input_predict/PVDrillProduction \
+$ mkdir data/output data/pipeline \
+  data/input_train/labels data/input_train/telemetry data/input_train/production \
+  data/input_predict/labels data/input_predict/telemetry data/input_predict/production \
   models/fitted
 ```
 
