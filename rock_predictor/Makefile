@@ -25,7 +25,7 @@ models/fitted/final_model.joblib doc/final_eval.txt: rock_predictor/train_final_
 
 #### PREDICTION
 # Process input data for new predictions
-data/pipeline/predict.csv : data/input_predict data/input_mapping rock_predictor/process_data.py
+data/pipeline/predict.csv : data/input_predict data/input_mapping rock_predictor/process_data.py models/fitted/final_model.joblib
 	python rock_predictor/process_data.py for_predict
 
 # Create features for new predictions
