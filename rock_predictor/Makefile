@@ -36,6 +36,8 @@ predict : data/input_predict/* data/input_mapping/*
 	python rock_predictor/predict.py models/fitted/final_model.joblib # 3) Make predictions using a saved model
 	# Uses train & test features for web app visualization, but does not regenerate them
 
+all : model_evals train predict
+
 # Clean up files
 clean :
 	rm -rf data/pipeline/*
