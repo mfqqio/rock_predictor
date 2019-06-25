@@ -89,13 +89,13 @@ df_telem_headers = clean.get_files(input_telem_headers, mode)
 df_labels['hole_id'] = df_labels['blast'] + "-" + df_labels['hole_name']
 df_labels['exp_rock_type'] = df_labels['exp_rock_type'].str.strip()
 
-# if mode == 'for_train':
-df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
-df_labels.dropna(subset=["litho_rock_type"], inplace=True) # Only drop NA litho rock type rows if processing for training
-df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
+if mode == 'for_train':
+    df_labels['litho_rock_type'] = df_labels['litho_rock_type'].str.strip()
+    df_labels.dropna(subset=["litho_rock_type"], inplace=True) # Only drop NA litho rock type rows if processing for training
+    df_labels["litho_rock_class"] = clean.get_rock_class(df_labels["litho_rock_type"], df_class_mapping)
 
 df_labels["exp_rock_class"] = clean.get_rock_class(df_labels["exp_rock_type"], df_class_mapping)
-print("Clean chemical assay data dimensions:", df_labels.shape)
+print("Chemical assay data dimensions after removing rows with missing values of Litho Rock Type:", df_labels.shape)
 
 # Cleaning df_production
 df_production['hole_id'] = df_production['DrillPattern'] + "-" + df_production['HoleID']
