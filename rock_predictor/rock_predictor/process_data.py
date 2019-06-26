@@ -79,11 +79,33 @@ input_telemetry_cols = {
     'FieldY': 'FieldY'
 }
 
+input_provision_cols = {
+    'DrillPattern': 'DrillPattern',
+    'DesignX': 'DesignX',
+    'DesignY': 'DesignY',
+    'DesignZ': 'DesignZ',
+    'DesignDepth': 'DesignDepth',
+    'ActualX': 'ActualX',
+    'ActualY': 'ActualY',
+    'ActualZ': 'ActualZ',
+    'ActualDepth': 'ActualDepth',
+    'ColletZ': 'ColletZ',
+    'HoleID': 'HoleID',
+    'FullName': 'FullName',
+    'FirstName': 'FirstName',
+    'UTCStartTime': 'UTCStartTime',
+    'UTCEndTime': 'UTCEndTime',
+    'StartTimeStamp': 'StartTimeStamp',
+    'EndTimeStamp': 'EndTimeStamp',
+    'DrillTime': 'DrillTime'
+}
+
 # Read all raw files into dataframes
 df_labels = clean.get_files(input_labels, mode, cols=input_labels_cols)
 df_class_mapping = clean.get_files(input_class_mapping, mode)
 df_explosive_mapping = clean.get_files(input_explosive_mapping, mode)
-df_production = clean.get_files(input_production, mode)
+df_production = clean.get_files(input_production, mode,
+    cols=input_provision_cols, encoding="ISO-8859-1")
 df_telemetry = clean.get_files(input_telemetry, mode, cols=input_telemetry_cols)
 df_telem_headers = clean.get_files(input_telem_headers, mode)
 
@@ -122,7 +144,7 @@ df_prod_labels = df_prod_labels.drop(columns=["kg/m3","kg/t"])
 if mode == 'for_train': # Don't drop na rows when we process data for prediction
     df_prod_labels.dropna(inplace=True)
 
-print('Clean joined Provision and Assay dataset dimension:', df_prod_labels.shape)
+print('Joined labels + production dimensions, after removing missing values:', df_prod_labels.shape)
 
 # Cleaning df_telemetry and making wide
 df_telemetry["utc_field_timestamp"] = clean.convert_utc2unix(df_telemetry.FieldTimestamp, timezone="Canada/Eastern",unit="s")
@@ -178,6 +200,7 @@ df_telem_holes = df_telem_holes[df_telem_holes.drilling_depth > min_depth]
 print("Number of telemetry holes after cleaning: ", df_telem_holes.shape)
 
 # Match time frames (for report purposes)
+
 latest_start_time = max(df_telem_holes.drill_start.min(),
     df_prod_labels.unix_start.min())
 earliest_end_time = min(df_telem_holes.drill_end.max(),
