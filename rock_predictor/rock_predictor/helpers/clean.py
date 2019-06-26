@@ -9,15 +9,11 @@ def get_files(path, mode, cols=None, dtype=None, encoding=None):
         usecols = None
 
     if os.path.isdir(path):
-        print("Loading all files from:", path)
         files = glob.glob(os.path.join(path, "*.csv"))
         df = (pd.read_csv(f, usecols=usecols,  encoding = encoding) for f in files)
         df = pd.concat(df, ignore_index=True, sort=False).drop_duplicates()
-        print("...concatenated shape:", df.shape)
     else:
-        print("Loading this file:", path)
         df = pd.read_csv(path, usecols=usecols)
-        print("...shape of file:", df.shape)
     if cols:
         df.rename(columns=cols,inplace=True)
     return df

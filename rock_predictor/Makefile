@@ -14,7 +14,7 @@ model_evals : doc/eval_models.csv doc/eval_models.txt
 # Defines targets for each separate step of the pipeline
 # 1) Split data into train and test sets
 data/pipeline/train.csv data/pipeline/test.csv : data/input_train/* data/input_mapping/* rock_predictor/process_data.py
-	python rock_predictor/process_data.py for_train
+	python -u rock_predictor/process_data.py for_train | tee doc/cleaning_report_train.txt
 
 # 2) Creates features for both train and test data sets
 data/pipeline/train_features.csv data/pipeline/test_features.csv : data/pipeline/train.csv data/pipeline/test.csv rock_predictor/create_features.py
@@ -31,7 +31,7 @@ models/fitted/final_model.joblib doc/final_eval.txt : data/pipeline/train_featur
 #### PREDICTION USING SELECTED MODEL
 ## To make predictions on new data, use `make predict`
 predict : data/input_predict/* data/input_mapping/* rock_predictor/process_data.py
-	python rock_predictor/process_data.py for_predict # 1) Process input data for new predictions
+	python -u rock_predictor/process_data.py for_predict  | tee doc/cleaning_report_predict.txt # 1) Process input data for new predictions
 	python rock_predictor/create_features.py for_predict # 2) Create features for new predictions
 	python rock_predictor/predict.py models/fitted/final_model.joblib # 3) Make predictions using a saved model
 	# Uses train & test features for web app visualization, but does not regenerate them
