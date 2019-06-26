@@ -2,42 +2,6 @@ import pandas as pd
 import numpy as np
 import random, glob, os
 
-# Below headers are hardcoded based on new predict data provided.
-# Note these must be updated if format of predict data tables changes
-pvdrill_headers = ['DrillPattern',
-                    'DesignX',
-                    'DesignY',
-                    'DesignZ',
-                    'DesignDepth',
-                    'ActualX',
-                    'ActualY',
-                    'ActualZ',
-                    'ActualDepth',
-                    'ColletZ',
-                    'HoleID',
-                    'FullName',
-                    'FirstName',
-                    'UTCStartTime',
-                    'UTCEndTime',
-                    'StartTimeStamp',
-                    'EndTimeStamp',
-                    'DrillTime']
-
-telem_headers = ['ShiftId',
-                'Id',
-                'FieldId',
-                'FieldEqmt',
-                'FieldTimestamp',
-                'datetime',
-                'FieldOperid',
-                'FieldLoadkey',
-                'FieldStatus',
-                'FieldData',
-                'FieldX',
-                'FieldY',
-                'FieldMckey',
-                'FieldLoad']
-
 def get_files(path, mode, cols=None, dtype=None, encoding=None):
     if cols:
         usecols = list(cols.keys())
@@ -50,12 +14,9 @@ def get_files(path, mode, cols=None, dtype=None, encoding=None):
         df = (pd.read_csv(f, usecols=usecols,  encoding = encoding) for f in files)
         df = pd.concat(df, ignore_index=True, sort=False).drop_duplicates()
         print("...concatenated shape:", df.shape)
-
     else:
         print("Loading this file:", path)
-
         df = pd.read_csv(path, usecols=usecols)
-
         print("...shape of file:", df.shape)
     if cols:
         df.rename(columns=cols,inplace=True)
